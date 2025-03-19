@@ -5,82 +5,70 @@ interface DraggableItem {
   id: string;
 }
 
-interface UseDraggableListProps<T extends DraggableItem> {
+interface UseDraggableListProps<T> {
   items: T[];
   onReorder: (items: T[]) => void;
 }
 
-interface DragState {
-  draggedIndex: number | null;
-  dragOverIndex: number | null;
-}
+export function useDraggableList<T>({ items, onReorder }: UseDraggableListProps<T>) {
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
-export function useDraggableList<T extends DraggableItem>({ 
-  items, 
-  onReorder 
-}: UseDraggableListProps<T>) {
-  const [dragState, setDragState] = useState<DragState>({
-    draggedIndex: null,
-    dragOverIndex: null
-  });
-
-  const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    setHoverIndex(index);
     e.dataTransfer.effectAllowed = 'move';
-    setDragState(prev => ({ ...prev, draggedIndex: index }));
-  }, []);
+  };
 
-  const handleDragOver = useCallback(
-    throttle((e: React.DragEvent, index: number) => {
-      e.preventDefault();
-      setDragState(prev => {
-        if (prev.draggedIndex === null || prev.draggedIndex === index) return prev;
-        return { ...prev, dragOverIndex: index };
-      });
-    }, 100),
-    []
-  );
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null) return;
+    setHoverIndex(index);
+  };
 
-  const handleDragEnd = useCallback(() => {
-    const { draggedIndex, dragOverIndex } = dragState;
+  const handleDragEnd = () => {
+    if (draggedIndex === null || hoverIndex === null) return;
     
-    if (draggedIndex !== null && dragOverIndex !== null) {
-      const newItems = [...items];
-      const [draggedItem] = newItems.splice(draggedIndex, 1);
-      newItems.splice(dragOverIndex, 0, draggedItem);
-      onReorder(newItems);
-    }
+    const reorderedItems = [...items];
+    const [draggedItem] = reorderedItems.splice(draggedIndex, 1);
+    reorderedItems.splice(hoverIndex, 0, draggedItem);
+    onReorder(reorderedItems);
+    
+    setDraggedIndex(null);
+    setHoverIndex(null);
+  };
 
-    setDragState({ draggedIndex: null, dragOverIndex: null });
-  }, [dragState, items, onReorder]);
-
-  const getItemStyle = useCallback((index: number) => {
-    const { draggedIndex, dragOverIndex } = dragState;
+  const getItemStyle = (index: number): string => {
+    if (draggedIndex === null || hoverIndex === null) return '';
     
     if (index === draggedIndex) {
       return 'dragging';
     }
-    
-    if (draggedIndex !== null && dragOverIndex !== null) {
-      if (draggedIndex > dragOverIndex) {
-        if (index >= dragOverIndex && index < draggedIndex) {
-          return 'drop-after';
-        }
+
+    // Calculate the range of indices that need to move
+    const start = Math.min(draggedIndex, hoverIndex);
+    const end = Math.max(draggedIndex, hoverIndex);
+
+    // If the current index is within the range
+    if (index >= start && index <= end && index !== draggedIndex) {
+      // If we're dragging downwards
+      if (draggedIndex < hoverIndex) {
+        return 'shift-up';
       }
-      else if (draggedIndex < dragOverIndex) {
-        if (index > draggedIndex && index <= dragOverIndex) {
-          return 'drop-before';
-        }
+      // If we're dragging upwards
+      else if (draggedIndex > hoverIndex) {
+        return 'shift-down';
       }
     }
     
     return '';
-  }, [dragState]);
+  };
 
   return {
     handleDragStart,
     handleDragOver,
     handleDragEnd,
     getItemStyle,
-    isDragging: dragState.draggedIndex !== null
+    isDragging: draggedIndex !== null
   };
 } 
