@@ -42,11 +42,11 @@ export const TaskList: React.FC<TaskListProps> = ({
           className={`
             ${styles.taskItem} 
             ${activeTaskId === task.id ? styles.active : ''}
-            ${getItemStyle(index)}
+            ${styles[getItemStyle(index)]}
           `}
           tabIndex={0}
           aria-label={`${task.category}: ${task.description}`}
-          aria-grabbed={isDragging}
+          aria-pressed={isDragging}
           data-testid={`task-item-${index}`}
         >
           <div className={styles.taskCategory}>{task.category}</div>

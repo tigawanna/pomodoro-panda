@@ -41,27 +41,23 @@ export function useDraggableList<T>({ items, onReorder }: UseDraggableListProps<
   const getItemStyle = (index: number): string => {
     if (draggedIndex === null || hoverIndex === null) return '';
     
+    let classes = [];
+    
     if (index === draggedIndex) {
-      return 'dragging';
-    }
-
-    // Calculate the range of indices that need to move
-    const start = Math.min(draggedIndex, hoverIndex);
-    const end = Math.max(draggedIndex, hoverIndex);
-
-    // If the current index is within the range
-    if (index >= start && index <= end && index !== draggedIndex) {
-      // If we're dragging downwards
-      if (draggedIndex < hoverIndex) {
-        return 'shift-up';
+      classes.push('dragging');
+    } else if (draggedIndex < hoverIndex) {
+      // Moving down
+      if (index > draggedIndex && index <= hoverIndex) {
+        classes.push('shift-up');
       }
-      // If we're dragging upwards
-      else if (draggedIndex > hoverIndex) {
-        return 'shift-down';
+    } else if (draggedIndex > hoverIndex) {
+      // Moving up
+      if (index < draggedIndex && index >= hoverIndex) {
+        classes.push('shift-down');
       }
     }
     
-    return '';
+    return classes.join(' ');
   };
 
   return {
