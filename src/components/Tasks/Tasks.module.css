@@ -58,7 +58,7 @@
 }
 
 /* Drag handle styles */
-.dragHandle {
+.taskItem .dragHandle {
   cursor: grab;
   color: var(--color-text-light);
   padding: var(--spacing-xs);
@@ -67,24 +67,23 @@
   justify-content: center;
   opacity: 0.5;
   width: 24px;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
+  touch-action: none;
+  border-radius: var(--border-radius-sm);
 }
 
-.dragHandle:hover {
+.taskItem .dragHandle:hover {
   opacity: 1;
+  background-color: var(--color-primary-background);
 }
 
-.dragging {
+.taskItem .dragHandle:active {
   cursor: grabbing;
-  box-shadow: var(--shadow-sm);
+}
+
+.taskItem.dragging .dragHandle {
+  cursor: grabbing;
   opacity: 1;
-  background: var(--color-white);
-  transform-origin: 0 0;
-  pointer-events: none;
-}
-
-.dragging .dragHandle {
-  cursor: grabbing;
 }
 
 /* Indicator shapes */
@@ -114,9 +113,9 @@
   border-top: 5px solid var(--color-primary);
 }
 
-/* Show indicators when drag handle is hovered */
-.taskItem:has(.dragHandle:hover)::before,
-.taskItem:has(.dragHandle:hover)::after {
+/* Show indicators when drag handle is hovered (but not during drag) */
+.taskItem:not(.dragging):has(.dragHandle:hover)::before,
+.taskItem:not(.dragging):has(.dragHandle:hover)::after {
   opacity: 1;
 }
 

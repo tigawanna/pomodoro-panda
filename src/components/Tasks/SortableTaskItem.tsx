@@ -13,7 +13,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   onDelete,
   onUpdatePomodoros,
   onEditTask,
-  className
+  className,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -25,7 +25,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     setNodeRef,
     transform,
     transition,
-    isDragging
+    isDragging,
   } = useSortable({ id: task.id });
 
   const style = {
@@ -46,10 +46,12 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
 
   const handleMenuToggle = () => setIsMenuOpen(!isMenuOpen);
   const handleDelete = () => onDelete(task.id);
-  const handleAddPomodoro = () => onUpdatePomodoros(task.id, (task.pomodoros || 0) + 1);
-  const handleRemovePomodoro = () => onUpdatePomodoros(task.id, Math.max(0, (task.pomodoros || 0) - 1));
+  const handleAddPomodoro = () =>
+    onUpdatePomodoros(task.id, (task.pomodoros || 0) + 1);
+  const handleRemovePomodoro = () =>
+    onUpdatePomodoros(task.id, Math.max(0, (task.pomodoros || 0) - 1));
   const handleEdit = () => setIsEditing(true);
-  
+
   const handleEditSubmit = (category: string, description: string) => {
     onEditTask(task.id, category, description);
     setIsEditing(false);
@@ -57,13 +59,17 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
 
   if (isEditing) {
     return (
-      <div ref={setNodeRef} style={style} className={styles.taskItemEditing}>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={styles.taskItemEditing}
+      >
         <TaskInput
           onAddTask={() => {}} // Not used in edit mode
           onEditTask={handleEditSubmit}
           initialValues={{
             category: task.category,
-            description: task.description
+            description: task.description,
           }}
           isEditing={true}
           onCancelEdit={() => setIsEditing(false)}
@@ -76,22 +82,31 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`${styles.taskItem} ${isActive ? styles.active : ''} ${isDragging ? styles.dragging : ''} ${className || ''}`}
+      className={`${styles.taskItem} ${isActive ? styles.active : ''} ${
+        isDragging ? styles.dragging : ''
+      } ${className || ''}`}
     >
-      <div className={styles.dragHandle} {...attributes} {...listeners}>
+      <div
+        className={`${styles.dragHandle} ${isDragging ? styles.dragging : ''}`}
+        {...attributes}
+        {...listeners}
+      >
         ⋮⋮
       </div>
       <div className={styles.taskCategory}>{task.category}</div>
       <div className={styles.taskDescription}>{task.description}</div>
       <div className={styles.taskTime}>
-        {new Date(estimatedCompletion).toLocaleTimeString([], { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        {new Date(estimatedCompletion).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
         })}
       </div>
-      <div className={styles.taskActions} ref={menuRef}>
+      <div
+        className={styles.taskActions}
+        ref={menuRef}
+      >
         <span className={styles.taskCount}>{task.pomodoros || 0}</span>
-        <button 
+        <button
           className={styles.moreButton}
           onClick={handleMenuToggle}
           aria-label={`More options for ${task.description}`}
@@ -113,4 +128,4 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       </div>
     </div>
   );
-}; 
+};
