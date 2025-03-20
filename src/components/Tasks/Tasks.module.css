@@ -206,12 +206,11 @@
   z-index: 100;
   min-width: 180px;
   margin-top: 4px;
-  padding: 4px 0;
 }
 
 .menuItem {
   width: 100%;
-  padding: 8px 16px;
+  padding: 10px 16px;
   border: none;
   background: none;
   text-align: left;
@@ -222,6 +221,18 @@
   align-items: center;
   gap: 8px;
   transition: all 0.2s ease;
+  position: relative;
+}
+
+.menuItem:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background-color: var(--color-border);
+  opacity: 0.5;
 }
 
 .menuItem:hover {
