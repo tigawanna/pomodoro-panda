@@ -92,6 +92,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               onDelete={onDelete}
               onUpdatePomodoros={onUpdatePomodoros}
               onEditTask={onEditTask}
+              className={`${index === 0 ? styles.isFirst : ''} ${index === tasks.length - 1 ? styles.isLast : ''}`}
             />
           ))}
         </SortableContext>

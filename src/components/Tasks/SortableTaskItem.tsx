@@ -12,7 +12,8 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   estimatedCompletion,
   onDelete,
   onUpdatePomodoros,
-  onEditTask
+  onEditTask,
+  className
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -75,7 +76,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`${styles.taskItem} ${isActive ? styles.active : ''} ${isDragging ? styles.dragging : ''}`}
+      className={`${styles.taskItem} ${isActive ? styles.active : ''} ${isDragging ? styles.dragging : ''} ${className || ''}`}
     >
       <div className={styles.dragHandle} {...attributes} {...listeners}>
         ⋮⋮

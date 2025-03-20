@@ -53,9 +53,43 @@
   position: relative;
 }
 
-/* Hover indicators */
-.taskItem:not(.dragging)::before,
-.taskItem:not(.dragging)::after {
+.taskItem:hover {
+  background-color: var(--color-background);
+}
+
+/* Drag handle styles */
+.dragHandle {
+  cursor: grab;
+  color: var(--color-text-light);
+  padding: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.5;
+  width: 24px;
+  transition: opacity 0.2s ease;
+}
+
+.dragHandle:hover {
+  opacity: 1;
+}
+
+.dragging {
+  cursor: grabbing;
+  box-shadow: var(--shadow-sm);
+  opacity: 1;
+  background: var(--color-white);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.dragging .dragHandle {
+  cursor: grabbing;
+}
+
+/* Indicator shapes */
+.taskItem::before,
+.taskItem::after {
   content: '';
   position: absolute;
   left: 50%;
@@ -65,32 +99,40 @@
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
   opacity: 0;
+  transition: opacity 0.15s ease;
   pointer-events: none;
+  z-index: 1;
 }
 
-.taskItem:not(.dragging)::before {
+.taskItem::before {
   top: -6px;
   border-bottom: 5px solid var(--color-primary);
 }
 
-.taskItem:not(.dragging)::after {
+.taskItem::after {
   bottom: -6px;
   border-top: 5px solid var(--color-primary);
 }
 
-.taskItem:not(.dragging):hover::before,
-.taskItem:not(.dragging):hover::after {
+/* Show indicators when drag handle is hovered */
+.taskItem:has(.dragHandle:hover)::before,
+.taskItem:has(.dragHandle:hover)::after {
   opacity: 1;
 }
 
-/* Hide indicators for first and last items */
-.taskList .taskItem:first-child::before,
-.taskList .taskItem:last-child::after {
+/* Hide indicators while dragging */
+.taskItem.dragging::before,
+.taskItem.dragging::after {
+  opacity: 0;
+}
+
+/* First and last item rules */
+.taskItem.isFirst::before {
   display: none;
 }
 
-.taskItem:hover {
-  background-color: var(--color-background);
+.taskItem.isLast::after {
+  display: none;
 }
 
 .taskItem.active {
@@ -220,25 +262,6 @@
   }
 }
 
-.dragHandle {
-  cursor: grab;
-  color: var(--color-text-light);
-  padding: var(--spacing-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.5;
-  width: 24px;
-}
-
-.dragHandle:hover {
-  opacity: 1;
-}
-
-.dragging .dragHandle {
-  cursor: grabbing;
-}
-
 .cancelButton {
   padding: 0.4rem 0.75rem;
   background-color: var(--color-text-light);
@@ -260,15 +283,6 @@
 .taskItemEditing .taskInput {
   margin: 0;
   flex: 1;
-}
-
-.dragging {
-  cursor: grabbing;
-  box-shadow: var(--shadow-sm);
-  opacity: 1;
-  background: var(--color-white);
-  transform-origin: 0 0;
-  pointer-events: none;
 }
 
 .completionIndicator {

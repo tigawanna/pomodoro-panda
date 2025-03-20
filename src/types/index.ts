@@ -76,6 +76,7 @@ export interface SortableTaskItemProps {
   onDelete: (taskId: string) => void;
   onUpdatePomodoros: (taskId: string, count: number) => void;
   onEditTask: (taskId: string, category: string, description: string) => void;
+  className?: string;
 }
 
 export interface NotificationProps {
