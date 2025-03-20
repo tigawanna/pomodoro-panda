@@ -152,7 +152,12 @@ describe('Database Integration', () => {
       pomodoros: 0
     };
     
-    await tasksDB.add(task);
+    try {
+      await tasksDB.add(task);
+    } catch (error: unknown) {
+      console.error('FAILURE: Could not add initial task');
+      throw error;
+    }
     
     // Update the task
     const updatedTask = {
@@ -162,14 +167,28 @@ describe('Database Integration', () => {
       completed: true
     };
     
-    await tasksDB.update(updatedTask);
+    try {
+      await tasksDB.update(updatedTask);
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB.update() - Cannot update existing task');
+      console.error('The update function is using store.add() instead of store.put()');
+      console.error('store.add() fails when the record already exists');
+      console.error('Fix by changing store.add(task) to store.put(task) in the update function');
+      throw error;
+    }
     
-    // Verify the update
-    const tasks = await tasksDB.getAll();
-    expect(tasks.length).toBe(1);
-    expect(tasks[0].description).toBe('Updated description');
-    expect(tasks[0].pomodoros).toBe(1);
-    expect(tasks[0].completed).toBe(true);
+    try {
+      // Verify the update
+      const tasks = await tasksDB.getAll();
+      expect(tasks.length).toBe(1);
+      expect(tasks[0].description).toBe('Updated description');
+      expect(tasks[0].pomodoros).toBe(1);
+      expect(tasks[0].completed).toBe(true);
+    } catch (error: unknown) {
+      console.error('FAILURE: Could not verify task update');
+      console.error('Expected updated values were not found in the database');
+      throw error;
+    }
   });
 
   test('should handle empty task list', async () => {
