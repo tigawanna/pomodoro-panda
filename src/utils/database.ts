@@ -69,25 +69,44 @@ export const tasksDB = {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
       
-      console.log('Starting updateAll with tasks:', tasks);
+      // Create a map of existing tasks for comparison
+      const getRequest = store.getAll();
       
-      // Delete all existing entries
-      store.clear();
-      
-      // Add tasks with order field
-      tasks.forEach((task, index) => {
-        const taskWithOrder = { ...task, order: index };
-        store.add(taskWithOrder);
-      });
-      
-      transaction.oncomplete = () => {
-        console.log('Transaction completed successfully');
-        resolve();
+      getRequest.onsuccess = () => {
+        const existingTasks = getRequest.result;
+        const updates: IDBRequest[] = [];
+        
+        // Update tasks with new order
+        tasks.forEach((task, index) => {
+          const taskWithOrder = { 
+            ...task, 
+            order: index,
+            // Preserve any existing fields not in the update
+            ...(existingTasks.find(t => t.id === task.id) || {})
+          };
+          updates.push(store.put(taskWithOrder));
+        });
+        
+        // Delete tasks that no longer exist
+        existingTasks
+          .filter(existing => !tasks.find(t => t.id === existing.id))
+          .forEach(taskToDelete => {
+            updates.push(store.delete(taskToDelete.id));
+          });
+        
+        transaction.oncomplete = () => {
+          console.log('Task order update completed successfully');
+          resolve();
+        };
+        
+        transaction.onerror = (event) => {
+          console.error('Failed to update task order:', event);
+          reject(transaction.error);
+        };
       };
       
-      transaction.onerror = (event) => {
-        console.error('Transaction failed:', event);
-        reject(transaction.error);
+      getRequest.onerror = () => {
+        reject(getRequest.error);
       };
     });
   }
