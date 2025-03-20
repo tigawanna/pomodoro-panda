@@ -32,19 +32,21 @@ export const tasksDB = {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
       
-      const request = store.add(task);
+      // Breaking change: Introduce async operation that causes transaction to expire
+      // This simulates a real-world scenario where we might fetch data or do other async work
+      async function addTask() {
+        try {
+          // Transaction expires while we wait for this async operation
+          await new Promise(resolve => resolve(true));
+          const request = store.add(task);
+          request.onsuccess = () => resolve(task.id);
+          request.onerror = () => reject(request.error);
+        } catch (error) {
+          reject(error);
+        }
+      }
       
-      request.onsuccess = () => {
-        resolve(task.id);
-      };
-      
-      request.onerror = () => {
-        reject(request.error);
-      };
-      
-      transaction.onerror = () => {
-        reject(transaction.error);
-      };
+      addTask();
     });
   },
 
@@ -53,27 +55,22 @@ export const tasksDB = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE], 'readonly');
       const store = transaction.objectStore(TASKS_STORE);
+      
       const request = store.getAll();
       
       request.onsuccess = () => {
         const tasks = request.result || [];
-        
-        // Sort tasks by order property if it exists
+        // Sort by order property, fallback to startTime if order is undefined
         const sortedTasks = [...tasks].sort((a, b) => {
-          // If order exists on both, use it
           if (a.order !== undefined && b.order !== undefined) {
             return a.order - b.order;
           }
-          // Fall back to startTime
           return a.startTime - b.startTime;
         });
-        
         resolve(sortedTasks);
       };
       
-      request.onerror = () => {
-        reject(request.error);
-      };
+      request.onerror = () => reject(request.error);
     });
   },
 

@@ -279,20 +279,39 @@ describe('Database Integration', () => {
     };
 
     try {
-      // Should succeed because we're using the transaction correctly
       await tasksDB.add(task);
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB.add()');
+      console.error('Operation: Adding task with ID:', task.id);
+      console.error('Status: Transaction inactive when attempting database operation');
       
-      // Verify the task was added
+      if (error instanceof Error) {
+        console.error('\nError details:', {
+          name: error.name,
+          message: error.message,
+          location: 'tasksDB.add() -> store operation'
+        });
+      }
+      throw error;
+    }
+
+    try {
       const tasks = await tasksDB.getAll();
       expect(tasks.length).toBe(1);
       expect(tasks[0].id).toBe('transaction-test');
     } catch (error: unknown) {
-      console.error('FAILURE IN tasksDB - Transaction failed unexpectedly');
-      console.error('Check that:');
-      console.error('1. store.add() is called immediately after getting the store');
-      console.error('2. transaction error handling is in place');
-      console.error('3. no delays or timeouts are used');
+      console.error('FAILURE IN tasksDB.getAll()');
+      console.error('Operation: Retrieving all tasks');
+      console.error('Status: Transaction inactive when attempting database operation');
+      
+      if (error instanceof Error) {
+        console.error('\nError details:', {
+          name: error.name,
+          message: error.message,
+          location: 'tasksDB.getAll() -> store operation'
+        });
+      }
       throw error;
     }
-  });
+  }, 2000);
 }); 
