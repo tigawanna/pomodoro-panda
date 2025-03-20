@@ -1,9 +1,5 @@
-import { useRef, useState } from 'react';
-
-interface UseDraggableListProps<T> {
-  items: T[];
-  onReorder: (items: T[]) => void;
-}
+import { useState, useRef } from 'react';
+import { UseDraggableListProps } from '../types';
 
 export function useDraggableList<T>({ items, onReorder }: UseDraggableListProps<T>) {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);

@@ -1,15 +1,10 @@
 import React from 'react';
+import { SortableTaskItemProps } from '../../types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styles from './Tasks.module.css';
-import { Task } from '../../types';
 
-interface SortableTaskItemProps {
-  task: Task;
-  isActive: boolean;
-}
-
-export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({ 
+export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task, 
   isActive 
 }) => {

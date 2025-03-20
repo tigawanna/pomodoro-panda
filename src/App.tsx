@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
-import { TaskInput } from './components/Tasks/TaskInput';
-import { TaskList } from './components/Tasks/TaskList';
-import { Timer } from './components/Timer/Timer';
+import { TaskInput, TaskList } from './components/Tasks';
+import { Timer } from './components/Timer';
 import { Task } from './types';
 import { tasksDB } from './utils/database';
 

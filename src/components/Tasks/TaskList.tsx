@@ -17,14 +17,8 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import styles from './Tasks.module.css';
-import { Task } from '../../types';
+import { TaskListProps } from '../../types';
 import { SortableTaskItem } from './SortableTaskItem';
-
-interface TaskListProps {
-  tasks: Task[];
-  activeTaskId: string | null;
-  onReorder: (tasks: Task[]) => void;
-}
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,

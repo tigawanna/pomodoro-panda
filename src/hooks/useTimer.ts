@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TimerType, TimerSettings } from '../types/index';
+import { TimerType, UseTimerProps, TimerSettings } from '../types';
 
 const DEFAULT_SETTINGS: TimerSettings = {
   workDuration: 25 * 60, // 25 minutes
@@ -7,11 +7,6 @@ const DEFAULT_SETTINGS: TimerSettings = {
   longBreakDuration: 15 * 60, // 15 minutes
   sessionsUntilLongBreak: 4
 };
-
-interface UseTimerProps {
-  onComplete?: () => void;
-  settings?: TimerSettings;
-}
 
 export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerProps = {}) => {
   const [timeLeft, setTimeLeft] = useState(settings.workDuration);
@@ -50,12 +45,12 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
       }, 1000);
     } else if (timeLeft === 0) {
       setIsRunning(false);
-      onComplete?.();
+      onComplete?.(timerType);
       switchTimer();
     }
 
     return () => clearInterval(interval);
-  }, [isRunning, timeLeft, onComplete, switchTimer]);
+  }, [isRunning, timeLeft, onComplete, switchTimer, timerType]);
 
   const start = useCallback(() => setIsRunning(true), []);
   const pause = useCallback(() => setIsRunning(false), []);

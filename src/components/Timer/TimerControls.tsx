@@ -1,15 +1,6 @@
 import React from 'react';
+import { TimerControlsProps } from '../../types';
 import styles from './Timer.module.css';
-
-interface TimerControlsProps {
-  isPaused: boolean;
-  hasStarted: boolean;
-  onStart: () => void;
-  onResume: () => void;
-  onPause: () => void;
-  onStop: () => void;
-  onDone: () => void;
-}
 
 export const TimerControls: React.FC<TimerControlsProps> = ({
   isPaused,

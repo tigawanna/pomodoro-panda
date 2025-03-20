@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { NotificationProps } from '../../types';
 import styles from './Notification.module.css';
-
-interface NotificationProps {
-  message: string;
-  duration?: number;
-  onClose?: () => void;
-}
 
 export const Notification: React.FC<NotificationProps> = ({ 
   message, 

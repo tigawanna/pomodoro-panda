@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
+import { TaskInputProps } from '../../types';
 import styles from './Tasks.module.css';
-
-interface TaskInputProps {
-  onAddTask: (category: string, description: string) => void;
-}
 
 export const TaskInput: React.FC<TaskInputProps> = ({ onAddTask }) => {
   const [category, setCategory] = useState('');
