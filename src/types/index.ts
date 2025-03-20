@@ -51,6 +51,13 @@ export interface TimerDisplayProps {
 
 export interface TaskInputProps {
   onAddTask: (category: string, description: string) => void;
+  onEditTask?: (category: string, description: string) => void;
+  initialValues?: {
+    category: string;
+    description: string;
+  };
+  isEditing?: boolean;
+  onCancelEdit?: () => void;
 }
 
 export interface TaskListProps {
@@ -59,6 +66,7 @@ export interface TaskListProps {
   onReorder: (reorderedTasks: Task[]) => void;
   onDelete: (taskId: string) => void;
   onUpdatePomodoros: (taskId: string, count: number) => void;
+  onEditTask: (taskId: string, category: string, description: string) => void;
 }
 
 export interface SortableTaskItemProps {
@@ -67,11 +75,13 @@ export interface SortableTaskItemProps {
   estimatedCompletion: number;
   onDelete: (taskId: string) => void;
   onUpdatePomodoros: (taskId: string, count: number) => void;
+  onEditTask: (taskId: string, category: string, description: string) => void;
 }
 
 export interface NotificationProps {
   message: string;
   duration?: number;
+  type?: 'error' | 'success' | 'info';
   onClose?: () => void;
 }
 
@@ -91,5 +101,11 @@ export interface TaskMenuProps {
   onClose: () => void;
   onAddPomodoro: () => void;
   onRemovePomodoro: () => void;
+  onEdit: () => void;
   pomodoroCount: number;
+}
+
+export interface NotificationState {
+  message: string;
+  type: 'error' | 'success' | 'info';
 } 

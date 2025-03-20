@@ -2,19 +2,29 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import { TaskInput, TaskList } from './components/Tasks';
 import { Timer } from './components/Timer';
-import { Task } from './types';
+import { Notification } from './components/Notification';
+import { Task, NotificationState } from './types';
 import { tasksDB } from './utils/database';
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [notification, setNotification] = useState<NotificationState | null>(null);
 
   useEffect(() => {
     loadTasks();
   }, []);
 
   const loadTasks = async () => {
-    const loadedTasks = await tasksDB.getAll();
-    setTasks(loadedTasks);
+    try {
+      const loadedTasks = await tasksDB.getAll();
+      setTasks(loadedTasks);
+    } catch (error) {
+      console.error('Failed to load tasks:', error);
+      setNotification({
+        message: 'Failed to load tasks',
+        type: 'error'
+      });
+    }
   };
 
   const handleAddTask = async (category: string, description: string) => {
@@ -67,36 +77,62 @@ function App() {
     }
   };
 
+  const handleEditTask = async (taskId: string, category: string, description: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) {
+        setNotification({
+          message: 'Task not found',
+          type: 'error'
+        });
+        return;
+      }
+
+      const updatedTask = {
+        ...task,
+        category,
+        description
+      };
+
+      await tasksDB.update(updatedTask);
+      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+      setNotification({
+        message: 'Task updated successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      setNotification({
+        message: 'Failed to update task',
+        type: 'error'
+      });
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
-    <>
-      <header className="header">
-        <div className="header-left">
-          <span>🍅</span>
-          <span>Pomodoro Tracker</span>
-        </div>
-        <div className="settings">
-          <span>⚙️ Settings</span>
-          <span>💬 Feedback</span>
-          <span>🌐 English</span>
-          <span>👤 user@email.com</span>
-        </div>
-      </header>
-      <div className="main-content">
+    <div className="app">
+      <main className="main-content">
         <Timer selectedTask={activeTask} />
-        <div className="tasks-section">
-          <TaskInput onAddTask={handleAddTask} />
-          <TaskList 
-            tasks={tasks} 
-            activeTaskId={activeTask?.id || null}
-            onReorder={handleReorderTasks}
-            onDelete={handleDeleteTask}
-            onUpdatePomodoros={handleUpdatePomodoros}
-          />
-        </div>
-      </div>
-    </>
+        <TaskInput onAddTask={handleAddTask} />
+        <TaskList
+          tasks={tasks}
+          activeTaskId={activeTask?.id || null}
+          onReorder={handleReorderTasks}
+          onDelete={handleDeleteTask}
+          onUpdatePomodoros={handleUpdatePomodoros}
+          onEditTask={handleEditTask}
+        />
+      </main>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
+    </div>
   );
 }
 

@@ -1,5 +1,4 @@
-import { Task } from '../types';
-import { TimerSettings } from '../types';
+import { Task, TimerSettings } from '../types';
 
 const DEFAULT_SETTINGS: TimerSettings = {
   workDuration: 25 * 60,

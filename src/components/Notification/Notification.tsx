@@ -5,6 +5,7 @@ import styles from './Notification.module.css';
 export const Notification: React.FC<NotificationProps> = ({ 
   message, 
   duration = 3000,
+  type = 'info',
   onClose 
 }) => {
   const [isVisible, setIsVisible] = useState(true);
@@ -21,7 +22,7 @@ export const Notification: React.FC<NotificationProps> = ({
   if (!isVisible) return null;
 
   return (
-    <div className={styles.notification}>
+    <div className={`${styles.notification} ${styles[type]}`}>
       {message}
     </div>
   );

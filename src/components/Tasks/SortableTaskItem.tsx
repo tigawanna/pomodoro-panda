@@ -1,18 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { SortableTaskItemProps } from '../../types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import styles from './Tasks.module.css';
+import React, { useEffect, useRef, useState } from 'react';
+import { SortableTaskItemProps } from '../../types';
+import { TaskInput } from './TaskInput';
 import { TaskMenu } from './TaskMenu';
+import styles from './Tasks.module.css';
 
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   isActive,
   estimatedCompletion,
   onDelete,
-  onUpdatePomodoros
+  onUpdatePomodoros,
+  onEditTask
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -21,14 +24,13 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     setNodeRef,
     transform,
     transition,
-    isDragging,
-  } = useSortable({ 
-    id: task.id,
-    transition: {
-      duration: 150,
-      easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
-    }
-  });
+    isDragging
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,33 +43,33 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+  const handleMenuToggle = () => setIsMenuOpen(!isMenuOpen);
+  const handleDelete = () => onDelete(task.id);
+  const handleAddPomodoro = () => onUpdatePomodoros(task.id, (task.pomodoros || 0) + 1);
+  const handleRemovePomodoro = () => onUpdatePomodoros(task.id, Math.max(0, (task.pomodoros || 0) - 1));
+  const handleEdit = () => setIsEditing(true);
+  
+  const handleEditSubmit = (category: string, description: string) => {
+    onEditTask(task.id, category, description);
+    setIsEditing(false);
   };
 
-  const handleMenuToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsMenuOpen(!isMenuOpen);
-  };
-
-  const handleDelete = () => {
-    onDelete(task.id);
-    setIsMenuOpen(false);
-  };
-
-  const handleAddPomodoro = () => {
-    onUpdatePomodoros(task.id, (task.pomodoros || 0) + 1);
-  };
-
-  const handleRemovePomodoro = () => {
-    const currentCount = task.pomodoros || 0;
-    if (currentCount > 1) {
-      onUpdatePomodoros(task.id, currentCount - 1);
-    }
-  };
+  if (isEditing) {
+    return (
+      <div ref={setNodeRef} style={style} className={styles.taskItemEditing}>
+        <TaskInput
+          onAddTask={() => {}} // Not used in edit mode
+          onEditTask={handleEditSubmit}
+          initialValues={{
+            category: task.category,
+            description: task.description
+          }}
+          isEditing={true}
+          onCancelEdit={() => setIsEditing(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -103,6 +105,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
             onClose={() => setIsMenuOpen(false)}
             onAddPomodoro={handleAddPomodoro}
             onRemovePomodoro={handleRemovePomodoro}
+            onEdit={handleEdit}
             pomodoroCount={task.pomodoros || 0}
           />
         )}

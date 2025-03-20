@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TaskMenuProps } from '../../types';
 import styles from './Tasks.module.css';
-
-interface TaskMenuProps {
-  onDelete: () => void;
-  onClose: () => void;
-  onAddPomodoro: () => void;
-  onRemovePomodoro: () => void;
-  pomodoroCount: number;
-}
 
 export const TaskMenu: React.FC<TaskMenuProps> = ({ 
   onDelete, 
   onClose, 
   onAddPomodoro, 
   onRemovePomodoro, 
+  onEdit, 
   pomodoroCount 
 }) => {
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
@@ -53,6 +47,16 @@ export const TaskMenu: React.FC<TaskMenuProps> = ({
       role="menu"
       aria-label="Task options"
     >
+      <button 
+        className={styles.menuItem}
+        onClick={() => {
+          onEdit();
+          onClose();
+        }}
+        role="menuitem"
+      >
+        <span>✏️</span> Edit
+      </button>
       <button 
         className={styles.menuItem}
         onClick={onAddPomodoro}

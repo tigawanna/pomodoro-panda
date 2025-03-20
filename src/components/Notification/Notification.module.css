@@ -2,15 +2,27 @@
   position: fixed;
   top: 20px;
   right: 20px;
-  background-color: rgba(0, 0, 0, 0.8);
-  color: white;
   padding: 12px 24px;
-  border-radius: 4px;
-  animation: slideIn 0.3s ease-out;
+  border-radius: var(--border-radius-sm);
+  color: var(--color-white);
+  font-size: var(--font-size-sm);
   z-index: 1000;
+  animation: slideLeft 0.3s ease-out;
 }
 
-@keyframes slideIn {
+.error {
+  background-color: var(--color-error, #d9534f);
+}
+
+.success {
+  background-color: var(--color-success, #5cb85c);
+}
+
+.info {
+  background-color: var(--color-info, #5bc0de);
+}
+
+@keyframes slideLeft {
   from {
     transform: translateX(100%);
     opacity: 0;

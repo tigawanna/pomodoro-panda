@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -17,7 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import styles from './Tasks.module.css';
-import { TaskListProps } from '../../types';
+import { Task, TaskListProps } from '../../types';
 import { SortableTaskItem } from './SortableTaskItem';
 import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 
@@ -27,8 +27,10 @@ export const TaskList: React.FC<TaskListProps> = ({
   onReorder,
   onDelete,
   onUpdatePomodoros,
+  onEditTask
 }) => {
-  const [activeId, setActiveId] = React.useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -38,27 +40,28 @@ export const TaskList: React.FC<TaskListProps> = ({
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id.toString());
+    const { active } = event;
+    setActiveId(active.id as string);
+    setActiveTask(tasks.find(task => task.id === active.id) ?? null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const oldIndex = tasks.findIndex((task) => task.id === active.id.toString());
-      const newIndex = tasks.findIndex((task) => task.id === over.id.toString());
+      const oldIndex = tasks.findIndex(task => task.id === active.id);
+      const newIndex = tasks.findIndex(task => task.id === over.id);
       
-      const newTasks = [...tasks];
-      const [movedTask] = newTasks.splice(oldIndex, 1);
-      newTasks.splice(newIndex, 0, movedTask);
+      const reorderedTasks = [...tasks];
+      const [movedTask] = reorderedTasks.splice(oldIndex, 1);
+      reorderedTasks.splice(newIndex, 0, movedTask);
       
-      onReorder(newTasks);
+      onReorder(reorderedTasks);
     }
     
     setActiveId(null);
+    setActiveTask(null);
   };
-
-  const activeTask = tasks.find((task) => task.id === activeId);
 
   return (
     <DndContext
@@ -85,13 +88,14 @@ export const TaskList: React.FC<TaskListProps> = ({
               estimatedCompletion={calculateEstimatedCompletion(tasks, index)}
               onDelete={onDelete}
               onUpdatePomodoros={onUpdatePomodoros}
+              onEditTask={onEditTask}
             />
           ))}
         </SortableContext>
       </div>
       
       <DragOverlay>
-        {activeTask ? (
+        {activeTask && (
           <div className={styles.taskItem}>
             <div className={styles.taskCategory}>{activeTask.category}</div>
             <div className={styles.taskDescription}>{activeTask.description}</div>
@@ -111,7 +115,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               </button>
             </div>
           </div>
-        ) : null}
+        )}
       </DragOverlay>
     </DndContext>
   );

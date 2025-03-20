@@ -583,4 +583,46 @@ describe('Database Integration', () => {
     const tasks = await tasksDB.getAll();
     expect(tasks[0].pomodoros).toBe(2);
   });
+
+  test('should edit task fields', async () => {
+    const task: Task = {
+      id: 'edit-test',
+      description: 'Initial description',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0,
+      order: 0
+    };
+  
+    // Add initial task
+    await tasksDB.add(task);
+  
+    // Edit task fields
+    const editedTask = {
+      ...task,
+      description: 'Updated description',
+      category: 'Personal'
+    };
+  
+    try {
+      await tasksDB.update(editedTask);
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB.update() - Cannot edit task fields');
+      throw error;
+    }
+  
+    // Verify the update
+    const tasks = await tasksDB.getAll();
+    expect(tasks.length).toBe(1);
+    expect(tasks[0].description).toBe('Updated description');
+    expect(tasks[0].category).toBe('Personal');
+    
+    // Verify other fields remained unchanged
+    expect(tasks[0].id).toBe(task.id);
+    expect(tasks[0].startTime).toBe(task.startTime);
+    expect(tasks[0].completed).toBe(task.completed);
+    expect(tasks[0].pomodoros).toBe(task.pomodoros);
+    expect(tasks[0].order).toBe(task.order);
+  });
 }); 
