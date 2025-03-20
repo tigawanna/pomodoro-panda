@@ -48,7 +48,7 @@ export const tasksDB = {
       
       request.onsuccess = () => {
         const tasks = request.result || [];
-        // Sort by order property, fallback to startTime if order is undefined
+        // Sort by order property, fallback to startTime
         const sortedTasks = [...tasks].sort((a, b) => {
           if (a.order !== undefined && b.order !== undefined) {
             return a.order - b.order;
@@ -123,6 +123,59 @@ export const tasksDB = {
       clearRequest.onerror = () => {
         reject(clearRequest.error);
       };
+    });
+  },
+
+  async delete(taskId: string): Promise<void> {
+    const db = await initDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([TASKS_STORE], 'readwrite');
+      const store = transaction.objectStore(TASKS_STORE);
+      
+      const getAllRequest = store.getAll();
+      
+      transaction.onerror = () => reject(transaction.error);
+
+      getAllRequest.onsuccess = () => {
+        const tasks = getAllRequest.result;
+        const sortedTasks = tasks.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        
+        const deleteRequest = store.delete(taskId);
+
+        deleteRequest.onsuccess = () => {
+          const remainingTasks = sortedTasks
+            .filter(t => t.id !== taskId)
+            .map((task, index) => ({
+              ...task,
+              order: index
+            }));
+
+          if (remainingTasks.length === 0) {
+            resolve();
+            return;
+          }
+
+          const updateTransaction = db.transaction([TASKS_STORE], 'readwrite');
+          const updateStore = updateTransaction.objectStore(TASKS_STORE);
+          
+          updateTransaction.oncomplete = () => {
+            resolve();
+          };
+
+          updateTransaction.onerror = () => {
+            reject(updateTransaction.error);
+          };
+
+          remainingTasks.forEach(task => {
+            updateStore.put(task);
+          });
+        };
+
+        deleteRequest.onerror = () => reject(deleteRequest.error);
+      };
+
+      getAllRequest.onerror = () => reject(getAllRequest.error);
     });
   }
 }; 

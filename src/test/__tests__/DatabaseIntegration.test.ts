@@ -444,4 +444,122 @@ describe('Database Integration', () => {
     expect(tasks[0].id).toBe('duplicate-test');
     expect(tasks[0].description).toBe('Original Task');
   });
+
+  test('should delete a task and maintain order', async () => {
+    // Setup initial tasks
+    const tasks: Task[] = [
+      { id: '1', description: 'Task A', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 0 },
+      { id: '2', description: 'Task B', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 1 },
+      { id: '3', description: 'Task C', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 2 }
+    ];
+
+    // Add all tasks
+    await tasksDB.updateAll(tasks);
+
+    // Delete middle task
+    await tasksDB.delete('2');
+
+    // Verify remaining tasks and their order
+    const remainingTasks = await tasksDB.getAll();
+    expect(remainingTasks.length).toBe(2);
+    expect(remainingTasks[0].id).toBe('1');
+    expect(remainingTasks[1].id).toBe('3');
+    expect(remainingTasks[0].order).toBe(0);
+    expect(remainingTasks[1].order).toBe(1);
+  });
+
+  test('should handle deleting non-existent task', async () => {
+    try {
+      await tasksDB.delete('non-existent-id');
+      // Should not throw error for non-existent task
+    } catch (error) {
+      fail('Should not throw error when deleting non-existent task');
+    }
+  });
+
+  test('should handle deleting tasks at different positions', async () => {
+    const tasks: Task[] = [
+      { id: 'first', description: 'First Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 0 },
+      { id: 'middle', description: 'Middle Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 1 },
+      { id: 'last', description: 'Last Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 2 }
+    ];
+
+    console.log('\nInitial tasks:', tasks.map(t => ({ id: t.id, order: t.order })));
+
+    await tasksDB.updateAll(tasks);
+    const initialTasks = await tasksDB.getAll();
+    console.log('Tasks after initial save:', initialTasks.map(t => ({ id: t.id, order: t.order })));
+
+    // Test deleting first task
+    console.log('\nDeleting task with id "first"');
+    await tasksDB.delete('first');
+    let remainingTasks = await tasksDB.getAll();
+    console.log('Tasks after deleting first:', remainingTasks.map(t => ({ id: t.id, order: t.order })));
+
+    try {
+      expect(remainingTasks.length).toBe(2);
+      expect(remainingTasks[0].id).toBe('middle');
+      expect(remainingTasks[0].order).toBe(0);
+      expect(remainingTasks[1].order).toBe(1);
+    } catch (error) {
+      console.error('\nFirst deletion assertion failed:');
+      console.error('Expected:', { length: 2, firstId: 'middle', firstOrder: 0, secondOrder: 1 });
+      console.error('Received:', {
+        length: remainingTasks.length,
+        firstId: remainingTasks[0]?.id,
+        firstOrder: remainingTasks[0]?.order,
+        secondOrder: remainingTasks[1]?.order
+      });
+      throw error;
+    }
+
+    // Test deleting last task
+    console.log('\nDeleting task with id "last"');
+    await tasksDB.delete('last');
+    remainingTasks = await tasksDB.getAll();
+    console.log('Tasks after deleting last:', remainingTasks.map(t => ({ id: t.id, order: t.order })));
+
+    try {
+      expect(remainingTasks.length).toBe(1);
+      expect(remainingTasks[0].id).toBe('middle');
+      expect(remainingTasks[0].order).toBe(0);
+    } catch (error) {
+      console.error('\nSecond deletion assertion failed:');
+      console.error('Expected:', { length: 1, firstId: 'middle', firstOrder: 0 });
+      console.error('Received:', {
+        length: remainingTasks.length,
+        firstId: remainingTasks[0]?.id,
+        firstOrder: remainingTasks[0]?.order
+      });
+      throw error;
+    }
+  });
+
+  test('should maintain data integrity during delete operation', async () => {
+    const task: Task = {
+      id: 'integrity-test',
+      description: 'Test Task',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 1,
+      order: 0
+    };
+
+    // Add task
+    await tasksDB.add(task);
+
+    // Delete task
+    await tasksDB.delete(task.id);
+
+    // Verify task is deleted
+    const tasks = await tasksDB.getAll();
+    expect(tasks.length).toBe(0);
+
+    // Try to add the same task again (should work as original was deleted)
+    await tasksDB.add(task);
+    const tasksAfterReAdd = await tasksDB.getAll();
+    expect(tasksAfterReAdd.length).toBe(1);
+    expect(tasksAfterReAdd[0].id).toBe(task.id);
+  });
 }); 
