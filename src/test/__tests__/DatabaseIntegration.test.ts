@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
-import { tasksDB, initDB, TASKS_STORE } from '../../../utils/database';
-import type { Task } from '../../../types';
+import { tasksDB, initDB, TASKS_STORE } from '../../utils/database';
+import type { Task } from '../../types';
 
 describe('Database Integration', () => {
   // Clean up database after all tests
