@@ -77,8 +77,9 @@ describe('Database Integration', () => {
       expect(retrievedTasks[1].id, 'After reordering, task 1 should be second').toBe('1');
       expect(retrievedTasks[2].id, 'After reordering, task 2 should be third').toBe('2');
     } catch (error) {
-      console.error('FAILURE IN tasksDB.getAll() - Order not maintained after updateAll');
-      console.error('The getAll function is not returning tasks in the correct order');
+      console.error('FAILURE IN tasksDB.updateAll() - Tasks not stored with correct order properties');
+      console.error('The updateAll function must assign order properties to tasks before storing');
+      console.error('Current task orders:', retrievedTasks.map(t => ({ id: t.id, order: t.order })));
       throw error;
     }
 
@@ -93,9 +94,9 @@ describe('Database Integration', () => {
       expect(tasksAfterRefresh[1].id, 'After page refresh, task 1 should still be second').toBe('1');
       expect(tasksAfterRefresh[2].id, 'After page refresh, task 2 should still be third').toBe('2');
     } catch (error) {
-      console.error('FAILURE IN tasksDB.getAll() - Order not preserved after page refresh');
-      console.error('The getAll function needs to sort tasks by the "order" property');
-      console.error('Fix by uncommenting the sorting logic in getAll()');
+      console.error('FAILURE IN tasksDB.updateAll() - Order not preserved after page refresh');
+      console.error('Tasks were not stored with order properties in updateAll()');
+      console.error('Current task orders:', tasksAfterRefresh.map(t => ({ id: t.id, order: t.order })));
       throw error;
     }
   });
@@ -133,6 +134,11 @@ describe('Database Integration', () => {
     expect(tasksAfterReorder[0].id).toBe('3');
     expect(tasksAfterReorder[1].id).toBe('2');
     expect(tasksAfterReorder[2].id).toBe('1');
+
+    // Verify that the order properties are correctly assigned
+    expect(tasksAfterReorder[0].order).toBe(0);
+    expect(tasksAfterReorder[1].order).toBe(1);
+    expect(tasksAfterReorder[2].order).toBe(2);
   });
 
   test('should update existing tasks', async () => {
