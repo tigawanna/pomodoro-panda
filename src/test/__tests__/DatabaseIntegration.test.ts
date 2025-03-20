@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
-import { tasksDB, initDB, TASKS_STORE } from '../../utils/database';
-import type { Task } from '../../types';
+import { tasksDB, initDB, TASKS_STORE, COMPLETED_TASKS_STORE } from '../../utils/database'; import type { Task } from '../../types';
 import { fail } from 'assert';
 
 describe('Database Integration', () => {
@@ -9,15 +8,25 @@ describe('Database Integration', () => {
     await indexedDB.deleteDatabase('PomodoroDB');
   });
 
+  // Add beforeEach to clean up both stores
   beforeEach(async () => {
-    // Clear database before each test
     const db = await initDB();
-    const transaction = db.transaction([TASKS_STORE], 'readwrite');
-    const store = transaction.objectStore(TASKS_STORE);
     await new Promise<void>((resolve, reject) => {
-      const request = store.clear();
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      const transaction = db.transaction([TASKS_STORE, COMPLETED_TASKS_STORE], 'readwrite');
+      const tasksStore = transaction.objectStore(TASKS_STORE);
+      const completedStore = transaction.objectStore(COMPLETED_TASKS_STORE);
+
+      // Clear both stores
+      tasksStore.clear();
+      completedStore.clear();
+
+      transaction.oncomplete = () => {
+        resolve();
+      };
+
+      transaction.onerror = () => {
+        reject(transaction.error);
+      };
     });
   });
 
@@ -82,7 +91,7 @@ describe('Database Integration', () => {
 
     // Verify new order
     retrievedTasks = await tasksDB.getAll();
-    
+
     try {
       expect(retrievedTasks[0].id, 'After reordering, task 3 should be first').toBe('3');
       expect(retrievedTasks[1].id, 'After reordering, task 1 should be second').toBe('1');
@@ -99,7 +108,7 @@ describe('Database Integration', () => {
 
     // Verify order is preserved after "refresh"
     const tasksAfterRefresh = await tasksDB.getAll();
-    
+
     try {
       expect(tasksAfterRefresh[0].id, 'After page refresh, task 3 should still be first').toBe('3');
       expect(tasksAfterRefresh[1].id, 'After page refresh, task 1 should still be second').toBe('1');
@@ -170,14 +179,14 @@ describe('Database Integration', () => {
       completed: false,
       pomodoros: 0
     };
-    
+
     try {
       await tasksDB.add(task);
     } catch (error: unknown) {
       console.error('FAILURE: Could not add initial task');
       throw error;
     }
-    
+
     // Update the task
     const updatedTask = {
       ...task,
@@ -185,14 +194,14 @@ describe('Database Integration', () => {
       pomodoros: 1,
       completed: true
     };
-    
+
     try {
       await tasksDB.update(updatedTask);
     } catch (error: unknown) {
       console.error('FAILURE IN tasksDB.update() - Cannot update existing task');
       throw error;
     }
-    
+
     try {
       // Verify the update
       const tasks = await tasksDB.getAll();
@@ -209,7 +218,7 @@ describe('Database Integration', () => {
 
   test('should handle empty task list', async () => {
     let timeoutId: NodeJS.Timeout | undefined;
-    
+
     try {
       await Promise.race([
         tasksDB.updateAll([]),
@@ -219,13 +228,13 @@ describe('Database Integration', () => {
           }, 5000);
         })
       ]);
-      
+
       if (timeoutId) clearTimeout(timeoutId);
-      
+
       // If we get here, updateAll resolved successfully
       const tasks = await tasksDB.getAll();
       expect(tasks).toEqual([]);
-      
+
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.error(error.message);
@@ -234,7 +243,7 @@ describe('Database Integration', () => {
       }
       throw error;
     }
-    
+
     try {
       // Add a task after clearing
       const task: Task = {
@@ -245,9 +254,9 @@ describe('Database Integration', () => {
         completed: false,
         pomodoros: 0
       };
-      
+
       await tasksDB.add(task);
-      
+
       // Verify task was added
       const updatedTasks = await tasksDB.getAll();
       expect(updatedTasks.length).toBe(1);
@@ -275,7 +284,7 @@ describe('Database Integration', () => {
       console.error('FAILURE IN tasksDB.add()');
       console.error('Operation: Adding task with ID:', task.id);
       console.error('Status: Transaction inactive when attempting database operation');
-      
+
       if (error instanceof Error) {
         console.error('\nError details:', {
           name: error.name,
@@ -293,7 +302,7 @@ describe('Database Integration', () => {
     } catch (error: unknown) {
       console.error('FAILURE IN tasksDB.getAll()');
 
-      
+
       if (error instanceof Error) {
         console.error('\nError details:', {
           name: error.name,
@@ -327,7 +336,7 @@ describe('Database Integration', () => {
     // Verify all tasks were added correctly
     const savedTasks = await tasksDB.getAll();
     expect(savedTasks.length).toBe(tasks.length);
-    
+
     // Verify order integrity
     tasks.forEach(task => {
       expect(savedTasks.some(t => t.id === task.id)).toBe(true);
@@ -349,7 +358,7 @@ describe('Database Integration', () => {
       // Add artificial delay to simulate slow operation
       await new Promise(resolve => setTimeout(resolve, 1000));
       await tasksDB.add(task);
-      
+
       const savedTasks = await tasksDB.getAll();
       expect(savedTasks.some(t => t.id === task.id)).toBe(true);
     } catch (error) {
@@ -370,15 +379,15 @@ describe('Database Integration', () => {
     };
 
     const db = await initDB();
-    
+
     try {
       await new Promise<void>((resolve, reject) => {
         const transaction = db.transaction([TASKS_STORE], 'readwrite');
         const store = transaction.objectStore(TASKS_STORE);
-        
+
         // Add request to keep transaction active
         const request = store.add(task);
-        
+
         // Handle transaction completion
         transaction.oncomplete = () => {
           resolve();
@@ -398,16 +407,16 @@ describe('Database Integration', () => {
       // Verify the task was added
       const verifyTransaction = db.transaction([TASKS_STORE], 'readonly');
       const store = verifyTransaction.objectStore(TASKS_STORE);
-      
+
       const getRequest = store.get(task.id);
-      
+
       const savedTask = await new Promise<Task>((resolve, reject) => {
         getRequest.onsuccess = () => resolve(getRequest.result);
         getRequest.onerror = () => reject(getRequest.error);
       });
 
       expect(savedTask.id).toBe(task.id);
-      
+
     } catch (error) {
       console.error('Transaction failed:', error);
       throw error;
@@ -485,17 +494,11 @@ describe('Database Integration', () => {
       { id: 'last', description: 'Last Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 2 }
     ];
 
-    console.log('\nInitial tasks:', tasks.map(t => ({ id: t.id, order: t.order })));
-
     await tasksDB.updateAll(tasks);
-    const initialTasks = await tasksDB.getAll();
-    console.log('Tasks after initial save:', initialTasks.map(t => ({ id: t.id, order: t.order })));
 
     // Test deleting first task
-    console.log('\nDeleting task with id "first"');
     await tasksDB.delete('first');
     let remainingTasks = await tasksDB.getAll();
-    console.log('Tasks after deleting first:', remainingTasks.map(t => ({ id: t.id, order: t.order })));
 
     try {
       expect(remainingTasks.length).toBe(2);
@@ -515,10 +518,9 @@ describe('Database Integration', () => {
     }
 
     // Test deleting last task
-    console.log('\nDeleting task with id "last"');
     await tasksDB.delete('last');
     remainingTasks = await tasksDB.getAll();
-    console.log('Tasks after deleting last:', remainingTasks.map(t => ({ id: t.id, order: t.order })));
+
 
     try {
       expect(remainingTasks.length).toBe(1);
@@ -576,10 +578,10 @@ describe('Database Integration', () => {
     };
 
     await tasksDB.add(task);
-    
+
     const updatedTask = { ...task, pomodoros: 2 };
     await tasksDB.update(updatedTask);
-    
+
     const tasks = await tasksDB.getAll();
     expect(tasks[0].pomodoros).toBe(2);
   });
@@ -594,35 +596,129 @@ describe('Database Integration', () => {
       pomodoros: 0,
       order: 0
     };
-  
+
     // Add initial task
     await tasksDB.add(task);
-  
+
     // Edit task fields
     const editedTask = {
       ...task,
       description: 'Updated description',
       category: 'Personal'
     };
-  
+
     try {
       await tasksDB.update(editedTask);
     } catch (error: unknown) {
       console.error('FAILURE IN tasksDB.update() - Cannot edit task fields');
       throw error;
     }
-  
+
     // Verify the update
     const tasks = await tasksDB.getAll();
     expect(tasks.length).toBe(1);
     expect(tasks[0].description).toBe('Updated description');
     expect(tasks[0].category).toBe('Personal');
-    
+
     // Verify other fields remained unchanged
     expect(tasks[0].id).toBe(task.id);
     expect(tasks[0].startTime).toBe(task.startTime);
     expect(tasks[0].completed).toBe(task.completed);
     expect(tasks[0].pomodoros).toBe(task.pomodoros);
     expect(tasks[0].order).toBe(task.order);
+  });
+
+  test('should move task to completed store when marked as done', async () => {
+    // Create initial task with a startTime in the past
+    const startTime = Date.now() - 1000; // 1 second ago
+    const task: Task = {
+      id: 'complete-test',
+      description: 'Task to complete',
+      category: 'Work',
+      startTime,
+      completed: false,
+      pomodoros: 1
+    };
+
+    // Add task to active tasks
+    await tasksDB.add(task);
+
+    // Mark task as completed with current time
+    const completedTime = Date.now();
+    const completedTask = {
+      ...task,
+      completed: true,
+      endTime: completedTime,
+      duration: completedTime - startTime // Calculate actual duration
+    };
+
+    // Move to completed store
+    await tasksDB.markAsCompleted(completedTask);
+
+    // Verify task is in completed store
+    const completedTasks = await tasksDB.getCompletedTasks();
+    expect(completedTasks.length).toBe(1);
+    expect(completedTasks[0].id).toBe(task.id);
+    expect(completedTasks[0].endTime).toBe(completedTime);
+
+    // Verify task is removed from active store
+    const activeTasks = await tasksDB.getAll();
+    expect(activeTasks.length).toBe(0);
+  });
+
+  test('should handle completing one pomodoro of a multi-pomodoro task', async () => {
+
+    // Create initial task with multiple pomodoros
+    const task: Task = {
+      id: 'multi-pomodoro-test',
+      description: 'Task with multiple pomodoros',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 3 // Task has 3 pomodoros assigned
+    };
+
+    // Add task to active tasks
+    try {
+      await tasksDB.add(task);
+    } catch (error) {
+      console.error('Failed to add initial task:', error);
+      throw error;
+    }
+
+    // Complete one pomodoro
+    const completedTime = Date.now();
+    const completedPomodoro = {
+      ...task,
+      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      completed: true,
+      endTime: completedTime,
+      duration: completedTime - task.startTime,
+      pomodoros: 1 // Each completed entry represents one pomodoro
+    };
+
+    try {
+      await tasksDB.completeOnePomodoro(task.id, completedPomodoro);
+    } catch (error) {
+      console.error('Failed to complete pomodoro:', error);
+      throw error;
+    }
+
+    // Verify pomodoro is in completed store
+    try {
+      const completedTasks = await tasksDB.getCompletedTasks(); 
+
+      const activeTasks = await tasksDB.getAll();
+      expect(activeTasks.length).toBe(1);
+
+      expect(completedTasks.length).toBe(1);
+    } catch (error) {
+      console.error('Verification failed:', error);
+      console.error('Test state:', {
+        originalTaskId: task.id,
+        completedPomodoroId: completedPomodoro.id
+      });
+      throw error;
+    }
   });
 }); 
