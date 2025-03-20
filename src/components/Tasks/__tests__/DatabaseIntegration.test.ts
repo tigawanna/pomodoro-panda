@@ -60,10 +60,7 @@ describe('Database Integration', () => {
       expect(retrievedTasks[1].id, 'Initial order should have task 2 second').toBe('2');
       expect(retrievedTasks[2].id, 'Initial order should have task 3 third').toBe('3');
     } catch (error) {
-      console.error('FAILURE IN tasksDB.getAll() - Tasks are being sorted in reverse order');
-      console.error('The sorting logic in getAll() is reversed. Check the comparison operators:');
-      console.error('Current implementation: return b.order - a.order (descending)');
-      console.error('Should be: return a.order - b.order (ascending)');
+      console.error('FAILURE IN tasksDB.getAll()');
       console.error('\nCurrent task order:', retrievedTasks.map(t => ({
         id: t.id,
         startTime: new Date(t.startTime).toISOString(),
@@ -132,10 +129,6 @@ describe('Database Integration', () => {
       expect(retrievedTasks[2].id).toBe('3');
     } catch (error) {
       console.error('FAILURE IN tasksDB.getAll() - Tasks with same startTime are sorted incorrectly');
-      console.error('The sorting logic in getAll() is reversed for both order and startTime:');
-      console.error('Current implementation:');
-      console.error('  - Order comparison: b.order - a.order (descending)');
-      console.error('  - StartTime comparison: b.startTime - a.startTime (descending)');
       console.error('\nCurrent task order:', retrievedTasks.map(t => ({
         id: t.id,
         startTime: new Date(t.startTime).toISOString(),
@@ -196,9 +189,6 @@ describe('Database Integration', () => {
       await tasksDB.update(updatedTask);
     } catch (error: unknown) {
       console.error('FAILURE IN tasksDB.update() - Cannot update existing task');
-      console.error('The update function is using store.add() instead of store.put()');
-      console.error('store.add() fails when the record already exists');
-      console.error('Fix by changing store.add(task) to store.put(task) in the update function');
       throw error;
     }
     
@@ -224,7 +214,7 @@ describe('Database Integration', () => {
         tasksDB.updateAll([]),
         new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
-            reject(new Error('FAILURE IN tasksDB.updateAll() - Promise never resolved for empty array. Check if empty array handling is implemented.'));
+            reject(new Error('FAILURE IN tasksDB.updateAll()'));
           }, 5000);
         })
       ]);
@@ -301,8 +291,7 @@ describe('Database Integration', () => {
       expect(tasks[0].id).toBe('transaction-test');
     } catch (error: unknown) {
       console.error('FAILURE IN tasksDB.getAll()');
-      console.error('Operation: Retrieving all tasks');
-      console.error('Status: Transaction inactive when attempting database operation');
+
       
       if (error instanceof Error) {
         console.error('\nError details:', {
