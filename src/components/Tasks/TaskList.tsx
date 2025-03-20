@@ -22,6 +22,7 @@ import { SortableTaskItem } from './SortableTaskItem';
 import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 import { CompletionIndicator } from './CompletionIndicator';
 import { TaskSummary } from './TaskSummary';
+import { EmptyState } from './EmptyState';
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
@@ -64,6 +65,10 @@ export const TaskList: React.FC<TaskListProps> = ({
     setActiveId(null);
     setActiveTask(null);
   };
+
+  if (tasks.length === 0) {
+    return <EmptyState />;
+  }
 
   return (
     <DndContext
