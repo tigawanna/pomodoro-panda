@@ -261,3 +261,12 @@
   margin: 0;
   flex: 1;
 }
+
+.dragging {
+  cursor: grabbing;
+  box-shadow: var(--shadow-sm);
+  opacity: 1;
+  background: var(--color-white);
+  transform-origin: 0 0;
+  pointer-events: none;
+}

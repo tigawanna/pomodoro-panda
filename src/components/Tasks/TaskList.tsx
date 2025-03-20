@@ -96,7 +96,8 @@ export const TaskList: React.FC<TaskListProps> = ({
       
       <DragOverlay>
         {activeTask && (
-          <div className={styles.taskItem}>
+          <div className={`${styles.taskItem} ${styles.dragging}`}>
+            <div className={styles.dragHandle}>⋮⋮</div>
             <div className={styles.taskCategory}>{activeTask.category}</div>
             <div className={styles.taskDescription}>{activeTask.description}</div>
             <div className={styles.taskTime}>
