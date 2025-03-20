@@ -173,28 +173,54 @@ describe('Database Integration', () => {
   });
 
   test('should handle empty task list', async () => {
-    // Clear any existing tasks
-    await tasksDB.updateAll([]);
+    let timeoutId: NodeJS.Timeout | undefined;
     
-    // Verify empty list
-    const tasks = await tasksDB.getAll();
-    expect(tasks).toEqual([]);
+    try {
+      await Promise.race([
+        tasksDB.updateAll([]),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('FAILURE IN tasksDB.updateAll() - Promise never resolved for empty array. Check if empty array handling is implemented.'));
+          }, 5000);
+        })
+      ]);
+      
+      if (timeoutId) clearTimeout(timeoutId);
+      
+      // If we get here, updateAll resolved successfully
+      const tasks = await tasksDB.getAll();
+      expect(tasks).toEqual([]);
+      
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message);
+        console.error('Fix by adding this check in clearRequest.onsuccess:');
+        console.error('if (tasks.length === 0) { resolve(); return; }');
+      }
+      throw error;
+    }
     
-    // Add a task after clearing
-    const task: Task = {
-      id: 'after-clear',
-      description: 'Added after clear',
-      category: 'Work',
-      startTime: Date.now(),
-      completed: false,
-      pomodoros: 0
-    };
-    
-    await tasksDB.add(task);
-    
-    // Verify task was added
-    const updatedTasks = await tasksDB.getAll();
-    expect(updatedTasks.length).toBe(1);
-    expect(updatedTasks[0].id).toBe('after-clear');
-  });
+    try {
+      // Add a task after clearing
+      const task: Task = {
+        id: 'after-clear',
+        description: 'Added after clear',
+        category: 'Work',
+        startTime: Date.now(),
+        completed: false,
+        pomodoros: 0
+      };
+      
+      await tasksDB.add(task);
+      
+      // Verify task was added
+      const updatedTasks = await tasksDB.getAll();
+      expect(updatedTasks.length).toBe(1);
+      expect(updatedTasks[0].id).toBe('after-clear');
+    } catch (error) {
+      console.error('FAILURE IN tasksDB - Cannot add task after clearing');
+      console.error('The database should accept new tasks after being cleared');
+      throw error;
+    }
+  }, 15000);
 }); 
