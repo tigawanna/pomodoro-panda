@@ -8,8 +8,13 @@ export const initDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => {
+      reject(request.error);
+    };
+    
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
@@ -28,8 +33,17 @@ export const tasksDB = {
       const store = transaction.objectStore(TASKS_STORE);
       const request = store.add(task);
       
-      request.onsuccess = () => resolve(task.id);
-      request.onerror = () => reject(request.error);
+      transaction.onerror = () => {
+        reject(transaction.error);
+      };
+      
+      request.onsuccess = () => {
+        resolve(task.id);
+      };
+      
+      request.onerror = () => {
+        reject(request.error);
+      };
     });
   },
 
@@ -41,13 +55,24 @@ export const tasksDB = {
       const request = store.getAll();
       
       request.onsuccess = () => {
-        // Sort by order if it exists, otherwise by startTime
-        const tasks = request.result.sort((a, b) => 
-          (a.order ?? a.startTime) - (b.order ?? b.startTime)
-        );
-        resolve(tasks);
+        const tasks = request.result || [];
+        
+        // Sort tasks by order property if it exists
+        const sortedTasks = [...tasks].sort((a, b) => {
+          // If order exists on both, use it
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          // Fall back to startTime
+          return a.startTime - b.startTime;
+        });
+        
+        resolve(sortedTasks);
       };
-      request.onerror = () => reject(request.error);
+      
+      request.onerror = () => {
+        reject(request.error);
+      };
     });
   },
 
@@ -58,8 +83,13 @@ export const tasksDB = {
       const store = transaction.objectStore(TASKS_STORE);
       const request = store.put(task);
       
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        resolve();
+      };
+      
+      request.onerror = () => {
+        reject(request.error);
+      };
     });
   },
 
@@ -69,31 +99,44 @@ export const tasksDB = {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
       
-      try {
-        // Clear existing tasks
-        store.clear();
+      transaction.onerror = () => {
+        reject(transaction.error);
+      };
+      
+      // Clear existing tasks
+      const clearRequest = store.clear();
+      
+      clearRequest.onsuccess = () => {
+        // Add all tasks in order
+        let count = 0;
         
-        // Add tasks with order
-        tasks.forEach((task, index) => {
-          store.add({
-            ...task,
-            order: index
-          });
-        });
-        
-        transaction.oncomplete = () => {
-          console.log('Successfully updated all tasks');
+        // Handle empty array case
+        if (tasks.length === 0) {
           resolve();
-        };
+          return;
+        }
         
-        transaction.onerror = () => {
-          console.error('Failed to update tasks:', transaction.error);
-          reject(transaction.error);
-        };
-      } catch (error) {
-        console.error('Error in updateAll:', error);
-        reject(error);
-      }
+        tasks.forEach((task, index) => {
+          const taskWithOrder = { ...task, order: index };
+          const request = store.add(taskWithOrder);
+          
+          request.onsuccess = () => {
+            count++;
+            if (count === tasks.length) {
+              resolve();
+            }
+          };
+          
+          request.onerror = (event) => {
+            event.preventDefault(); // Prevent transaction abort
+            reject(request.error);
+          };
+        });
+      };
+      
+      clearRequest.onerror = () => {
+        reject(clearRequest.error);
+      };
     });
   }
 }; 
