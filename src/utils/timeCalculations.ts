@@ -35,4 +35,22 @@ export const calculateEstimatedCompletion = (
   }
 
   return now + (totalMinutes * 1000); // Convert to milliseconds and add to current time
+};
+
+export const calculateTotalDuration = (
+  tasks: Task[],
+  settings: TimerSettings = DEFAULT_SETTINGS
+): { hours: number; minutes: number } => {
+  let totalMinutes = 0;
+
+  tasks.forEach(task => {
+    const pomodoros = task.pomodoros || 1;
+    // Only add work periods, converting from seconds to minutes
+    totalMinutes += (pomodoros * (settings.workDuration / 60));
+  });
+
+  return {
+    hours: Math.floor(totalMinutes / 60),
+    minutes: Math.round(totalMinutes % 60)
+  };
 }; 

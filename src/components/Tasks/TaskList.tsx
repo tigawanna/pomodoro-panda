@@ -20,6 +20,8 @@ import styles from './Tasks.module.css';
 import { Task, TaskListProps } from '../../types';
 import { SortableTaskItem } from './SortableTaskItem';
 import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
+import { CompletionIndicator } from './CompletionIndicator';
+import { TaskSummary } from './TaskSummary';
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
@@ -76,6 +78,7 @@ export const TaskList: React.FC<TaskListProps> = ({
         role="list"
         aria-label="Task list"
       >
+        <TaskSummary tasks={tasks} />
         <SortableContext
           items={tasks.map(task => task.id)}
           strategy={verticalListSortingStrategy}
@@ -92,6 +95,8 @@ export const TaskList: React.FC<TaskListProps> = ({
             />
           ))}
         </SortableContext>
+        
+        <CompletionIndicator tasks={tasks} />
       </div>
       
       <DragOverlay>

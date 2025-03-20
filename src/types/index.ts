@@ -108,4 +108,14 @@ export interface TaskMenuProps {
 export interface NotificationState {
   message: string;
   type: 'error' | 'success' | 'info';
+}
+
+export interface CompletionIndicatorProps {
+  tasks: Task[];
+  settings?: TimerSettings;
+}
+
+export interface TaskSummaryProps {
+  tasks: Task[];
+  settings?: TimerSettings;
 } 
