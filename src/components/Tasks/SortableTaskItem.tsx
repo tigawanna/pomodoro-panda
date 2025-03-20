@@ -6,7 +6,8 @@ import styles from './Tasks.module.css';
 
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task, 
-  isActive 
+  isActive,
+  estimatedCompletion
 }) => {
   const {
     attributes,
@@ -47,7 +48,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       <div className={styles.taskCategory}>{task.category}</div>
       <div className={styles.taskDescription}>{task.description}</div>
       <div className={styles.taskTime}>
-        {new Date(task.startTime).toLocaleTimeString([], { 
+        {new Date(estimatedCompletion).toLocaleTimeString([], { 
           hour: '2-digit', 
           minute: '2-digit' 
         })}

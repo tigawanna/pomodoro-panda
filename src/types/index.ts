@@ -62,6 +62,7 @@ export interface TaskListProps {
 export interface SortableTaskItemProps {
   task: Task;
   isActive: boolean;
+  estimatedCompletion: number;
 }
 
 export interface NotificationProps {

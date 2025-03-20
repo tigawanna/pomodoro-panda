@@ -19,6 +19,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import styles from './Tasks.module.css';
 import { TaskListProps } from '../../types';
 import { SortableTaskItem } from './SortableTaskItem';
+import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
@@ -74,11 +75,12 @@ export const TaskList: React.FC<TaskListProps> = ({
           items={tasks.map(task => task.id)}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <SortableTaskItem
               key={task.id}
               task={task}
               isActive={task.id === activeTaskId}
+              estimatedCompletion={calculateEstimatedCompletion(tasks, index)}
             />
           ))}
         </SortableContext>
@@ -90,7 +92,7 @@ export const TaskList: React.FC<TaskListProps> = ({
             <div className={styles.taskCategory}>{activeTask.category}</div>
             <div className={styles.taskDescription}>{activeTask.description}</div>
             <div className={styles.taskTime}>
-              {new Date(activeTask.startTime).toLocaleTimeString([], { 
+              {new Date(calculateEstimatedCompletion([activeTask], 0)).toLocaleTimeString([], { 
                 hour: '2-digit', 
                 minute: '2-digit' 
               })}

@@ -24,7 +24,7 @@ function App() {
       description,
       startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     await tasksDB.add(newTask);
