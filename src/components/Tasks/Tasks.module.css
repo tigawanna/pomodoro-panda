@@ -161,8 +161,6 @@
   padding: 4px 0;
 }
 
-
-
 .menuItem {
   width: 100%;
   padding: 8px 16px;
@@ -191,6 +189,21 @@
 .menuItemDanger:hover {
   color: var(--color-white);
   background-color: var(--color-primary);
+}
+
+.menuItem:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  /* pointer-events: none; */
+  color: var(--color-text-light);
+}
+
+.menuItem:disabled:hover {
+  background: none;
+}
+
+.menuItem:disabled span {
+  opacity: 0.5;
 }
 
 /* Touch device handling */

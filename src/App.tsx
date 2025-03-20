@@ -54,6 +54,19 @@ function App() {
     }
   };
 
+  const handleUpdatePomodoros = async (taskId: string, count: number) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+      
+      const updatedTask = { ...task, pomodoros: count };
+      await tasksDB.update(updatedTask);
+      setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+    } catch (error) {
+      console.error('Failed to update task pomodoros:', error);
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
@@ -79,6 +92,7 @@ function App() {
             activeTaskId={activeTask?.id || null}
             onReorder={handleReorderTasks}
             onDelete={handleDeleteTask}
+            onUpdatePomodoros={handleUpdatePomodoros}
           />
         </div>
       </div>

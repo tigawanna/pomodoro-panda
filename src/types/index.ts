@@ -56,8 +56,9 @@ export interface TaskInputProps {
 export interface TaskListProps {
   tasks: Task[];
   activeTaskId: string | null;
-  onReorder: (tasks: Task[]) => void;
+  onReorder: (reorderedTasks: Task[]) => void;
   onDelete: (taskId: string) => void;
+  onUpdatePomodoros: (taskId: string, count: number) => void;
 }
 
 export interface SortableTaskItemProps {
@@ -65,6 +66,7 @@ export interface SortableTaskItemProps {
   isActive: boolean;
   estimatedCompletion: number;
   onDelete: (taskId: string) => void;
+  onUpdatePomodoros: (taskId: string, count: number) => void;
 }
 
 export interface NotificationProps {
@@ -87,4 +89,7 @@ export interface UseDraggableListProps<T> {
 export interface TaskMenuProps {
   onDelete: () => void;
   onClose: () => void;
+  onAddPomodoro: () => void;
+  onRemovePomodoro: () => void;
+  pomodoroCount: number;
 } 

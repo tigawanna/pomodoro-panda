@@ -9,7 +9,8 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   isActive,
   estimatedCompletion,
-  onDelete
+  onDelete,
+  onUpdatePomodoros
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -57,6 +58,17 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     setIsMenuOpen(false);
   };
 
+  const handleAddPomodoro = () => {
+    onUpdatePomodoros(task.id, (task.pomodoros || 0) + 1);
+  };
+
+  const handleRemovePomodoro = () => {
+    const currentCount = task.pomodoros || 0;
+    if (currentCount > 1) {
+      onUpdatePomodoros(task.id, currentCount - 1);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -89,6 +101,9 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
           <TaskMenu
             onDelete={handleDelete}
             onClose={() => setIsMenuOpen(false)}
+            onAddPomodoro={handleAddPomodoro}
+            onRemovePomodoro={handleRemovePomodoro}
+            pomodoroCount={task.pomodoros || 0}
           />
         )}
       </div>

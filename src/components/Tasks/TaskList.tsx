@@ -25,7 +25,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   activeTaskId,
   onReorder,
-  onDelete
+  onDelete,
+  onUpdatePomodoros,
 }) => {
   const [activeId, setActiveId] = React.useState<string | null>(null);
   
@@ -83,6 +84,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               isActive={task.id === activeTaskId}
               estimatedCompletion={calculateEstimatedCompletion(tasks, index)}
               onDelete={onDelete}
+              onUpdatePomodoros={onUpdatePomodoros}
             />
           ))}
         </SortableContext>

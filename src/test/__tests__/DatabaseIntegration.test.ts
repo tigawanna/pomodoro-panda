@@ -563,4 +563,24 @@ describe('Database Integration', () => {
     expect(tasksAfterReAdd.length).toBe(1);
     expect(tasksAfterReAdd[0].id).toBe(task.id);
   });
+
+  test('should update task pomodoro count', async () => {
+    const task: Task = {
+      id: '1',
+      description: 'Test Task',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 1,
+      order: 0
+    };
+
+    await tasksDB.add(task);
+    
+    const updatedTask = { ...task, pomodoros: 2 };
+    await tasksDB.update(updatedTask);
+    
+    const tasks = await tasksDB.getAll();
+    expect(tasks[0].pomodoros).toBe(2);
+  });
 }); 
