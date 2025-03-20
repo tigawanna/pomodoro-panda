@@ -2,7 +2,7 @@ import { Task } from '../types';
 
 const DB_NAME = 'PomodoroDB';
 const DB_VERSION = 1;
-const TASKS_STORE = 'tasks';
+export const TASKS_STORE = 'tasks' as const;
 
 export const initDB = (): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
@@ -32,21 +32,9 @@ export const tasksDB = {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
       
-      // Breaking change: Introduce async operation that causes transaction to expire
-      // This simulates a real-world scenario where we might fetch data or do other async work
-      async function addTask() {
-        try {
-          // Transaction expires while we wait for this async operation
-          await new Promise(resolve => resolve(true));
-          const request = store.add(task);
-          request.onsuccess = () => resolve(task.id);
-          request.onerror = () => reject(request.error);
-        } catch (error) {
-          reject(error);
-        }
-      }
-      
-      addTask();
+      const request = store.add(task);
+      request.onsuccess = () => resolve(task.id);
+      request.onerror = () => reject(request.error);
     });
   },
 

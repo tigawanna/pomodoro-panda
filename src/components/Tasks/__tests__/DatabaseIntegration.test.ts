@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
-import { tasksDB, initDB } from '../../../utils/database';
+import { tasksDB, initDB, TASKS_STORE } from '../../../utils/database';
 import type { Task } from '../../../types';
 
 describe('Database Integration', () => {
@@ -11,8 +11,8 @@ describe('Database Integration', () => {
   beforeEach(async () => {
     // Clear database before each test
     const db = await initDB();
-    const transaction = db.transaction(['tasks'], 'readwrite');
-    const store = transaction.objectStore('tasks');
+    const transaction = db.transaction([TASKS_STORE], 'readwrite');
+    const store = transaction.objectStore(TASKS_STORE);
     await new Promise<void>((resolve, reject) => {
       const request = store.clear();
       request.onsuccess = () => resolve();
@@ -303,4 +303,145 @@ describe('Database Integration', () => {
       throw error;
     }
   }, 2000);
+
+  test('should maintain transaction integrity during add operation', async () => {
+    const tasks: Task[] = Array.from({ length: 10 }, (_, i) => ({
+      id: `concurrent-${i}`,
+      description: `Task ${i}`,
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0
+    }));
+
+    // Test concurrent adds to stress test transaction handling
+    try {
+      await Promise.all(tasks.map(task => tasksDB.add(task)));
+    } catch (error) {
+      console.error('FAILURE IN concurrent tasksDB.add operations');
+      console.error('Possible cause: Transaction expired before operation completed');
+      throw error;
+    }
+
+    // Verify all tasks were added correctly
+    const savedTasks = await tasksDB.getAll();
+    expect(savedTasks.length).toBe(tasks.length);
+    
+    // Verify order integrity
+    tasks.forEach(task => {
+      expect(savedTasks.some(t => t.id === task.id)).toBe(true);
+    });
+  });
+
+  // Add a test with artificial delay to catch transaction timeouts
+  test('should handle slow operations without transaction expiry', async () => {
+    const task: Task = {
+      id: 'slow-operation',
+      description: 'Slow Task',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0
+    };
+
+    try {
+      // Add artificial delay to simulate slow operation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await tasksDB.add(task);
+      
+      const savedTasks = await tasksDB.getAll();
+      expect(savedTasks.some(t => t.id === task.id)).toBe(true);
+    } catch (error) {
+      console.error('FAILURE: Transaction expired during slow operation');
+      console.error('IndexedDB transactions must complete within the same event loop iteration');
+      throw error;
+    }
+  });
+
+  test('should handle transaction lifecycle correctly', async () => {
+    const task: Task = {
+      id: 'transaction-state',
+      description: 'Test Transaction State',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0
+    };
+
+    const db = await initDB();
+    
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const transaction = db.transaction([TASKS_STORE], 'readwrite');
+        const store = transaction.objectStore(TASKS_STORE);
+        
+        // Add request to keep transaction active
+        const request = store.add(task);
+        
+        // Handle transaction completion
+        transaction.oncomplete = () => {
+          resolve();
+        };
+
+        // Handle transaction errors
+        transaction.onerror = () => {
+          reject(new Error('Transaction failed'));
+        };
+
+        // Handle request errors
+        request.onerror = () => {
+          reject(request.error);
+        };
+      });
+
+      // Verify the task was added
+      const verifyTransaction = db.transaction([TASKS_STORE], 'readonly');
+      const store = verifyTransaction.objectStore(TASKS_STORE);
+      
+      const getRequest = store.get(task.id);
+      
+      const savedTask = await new Promise<Task>((resolve, reject) => {
+        getRequest.onsuccess = () => resolve(getRequest.result);
+        getRequest.onerror = () => reject(getRequest.error);
+      });
+
+      expect(savedTask.id).toBe(task.id);
+      
+    } catch (error) {
+      console.error('Transaction failed:', error);
+      throw error;
+    }
+  }, 1000); // Reduced timeout since transaction should complete quickly
+
+  test('should handle duplicate ID errors correctly', async () => {
+    const task: Task = {
+      id: 'duplicate-test',
+      description: 'Original Task',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0
+    };
+
+    // Add the first task
+    await tasksDB.add(task);
+
+    // Attempt to add the same task again
+    try {
+      await tasksDB.add(task);
+      throw new Error('Should not succeed in adding duplicate task');
+    } catch (error) {
+      // Verify it's the expected constraint error
+      expect(error).toBeDefined();
+      if (error instanceof Error) {
+        expect(error.name).toMatch(/Constraint|Key/i);
+      }
+    }
+
+    // Verify only one task exists
+    const tasks = await tasksDB.getAll();
+    expect(tasks.length).toBe(1);
+    expect(tasks[0].id).toBe('duplicate-test');
+    expect(tasks[0].description).toBe('Original Task');
+  });
 }); 
