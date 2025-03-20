@@ -55,14 +55,16 @@ export interface TaskInputProps {
 
 export interface TaskListProps {
   tasks: Task[];
-  activeTaskId?: string | null;
+  activeTaskId: string | null;
   onReorder: (tasks: Task[]) => void;
+  onDelete: (taskId: string) => void;
 }
 
 export interface SortableTaskItemProps {
   task: Task;
   isActive: boolean;
   estimatedCompletion: number;
+  onDelete: (taskId: string) => void;
 }
 
 export interface NotificationProps {
@@ -80,4 +82,9 @@ export interface UseTimerProps {
 export interface UseDraggableListProps<T> {
   items: T[];
   onReorder: (items: T[]) => void;
+}
+
+export interface TaskMenuProps {
+  onDelete: () => void;
+  onClose: () => void;
 } 

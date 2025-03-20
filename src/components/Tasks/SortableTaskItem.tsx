@@ -1,14 +1,19 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { SortableTaskItemProps } from '../../types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import styles from './Tasks.module.css';
+import { TaskMenu } from './TaskMenu';
 
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
-  task, 
+  task,
   isActive,
-  estimatedCompletion
+  estimatedCompletion,
+  onDelete
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const {
     attributes,
     listeners,
@@ -24,27 +29,43 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     }
   });
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleMenuToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleDelete = () => {
+    onDelete(task.id);
+    setIsMenuOpen(false);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`
-        ${styles.taskItem} 
-        ${isActive ? styles.active : ''}
-        ${isDragging ? styles.dragging : ''}
-      `}
-      {...attributes}
-      {...listeners}
-      tabIndex={0}
-      aria-label={`${task.category}: ${task.description}`}
-      data-testid={`task-item-${task.id}`}
+      className={`${styles.taskItem} ${isActive ? styles.active : ''} ${isDragging ? styles.dragging : ''}`}
     >
+      <div className={styles.dragHandle} {...attributes} {...listeners}>
+        ⋮⋮
+      </div>
       <div className={styles.taskCategory}>{task.category}</div>
       <div className={styles.taskDescription}>{task.description}</div>
       <div className={styles.taskTime}>
@@ -53,14 +74,23 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
           minute: '2-digit' 
         })}
       </div>
-      <div className={styles.taskActions}>
+      <div className={styles.taskActions} ref={menuRef}>
         <span className={styles.taskCount}>{task.pomodoros || 0}</span>
         <button 
           className={styles.moreButton}
+          onClick={handleMenuToggle}
           aria-label={`More options for ${task.description}`}
+          aria-expanded={isMenuOpen}
+          aria-haspopup="menu"
         >
           ⋮
         </button>
+        {isMenuOpen && (
+          <TaskMenu
+            onDelete={handleDelete}
+            onClose={() => setIsMenuOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

@@ -44,6 +44,16 @@ function App() {
     }
   };
 
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      await tasksDB.delete(taskId);
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      // Optionally show an error notification to the user
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
@@ -68,6 +78,7 @@ function App() {
             tasks={tasks} 
             activeTaskId={activeTask?.id || null}
             onReorder={handleReorderTasks}
+            onDelete={handleDeleteTask}
           />
         </div>
       </div>

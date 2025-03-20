@@ -24,7 +24,8 @@ import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
   activeTaskId,
-  onReorder
+  onReorder,
+  onDelete
 }) => {
   const [activeId, setActiveId] = React.useState<string | null>(null);
   
@@ -81,6 +82,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               task={task}
               isActive={task.id === activeTaskId}
               estimatedCompletion={calculateEstimatedCompletion(tasks, index)}
+              onDelete={onDelete}
             />
           ))}
         </SortableContext>

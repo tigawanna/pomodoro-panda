@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import { tasksDB, initDB, TASKS_STORE } from '../../utils/database';
 import type { Task } from '../../types';
+import { fail } from 'assert';
 
 describe('Database Integration', () => {
   // Clean up database after all tests
@@ -472,7 +473,7 @@ describe('Database Integration', () => {
     try {
       await tasksDB.delete('non-existent-id');
       // Should not throw error for non-existent task
-    } catch (error) {
+    } catch {
       fail('Should not throw error when deleting non-existent task');
     }
   });
