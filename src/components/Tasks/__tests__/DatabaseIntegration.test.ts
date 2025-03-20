@@ -55,9 +55,22 @@ describe('Database Integration', () => {
 
     // Verify initial order (should be by startTime)
     let retrievedTasks = await tasksDB.getAll();
-    expect(retrievedTasks[0].id, 'Initial order should have task 1 first').toBe('1');
-    expect(retrievedTasks[1].id, 'Initial order should have task 2 second').toBe('2');
-    expect(retrievedTasks[2].id, 'Initial order should have task 3 third').toBe('3');
+    try {
+      expect(retrievedTasks[0].id, 'Initial order should have task 1 first').toBe('1');
+      expect(retrievedTasks[1].id, 'Initial order should have task 2 second').toBe('2');
+      expect(retrievedTasks[2].id, 'Initial order should have task 3 third').toBe('3');
+    } catch (error) {
+      console.error('FAILURE IN tasksDB.getAll() - Tasks are being sorted in reverse order');
+      console.error('The sorting logic in getAll() is reversed. Check the comparison operators:');
+      console.error('Current implementation: return b.order - a.order (descending)');
+      console.error('Should be: return a.order - b.order (ascending)');
+      console.error('\nCurrent task order:', retrievedTasks.map(t => ({
+        id: t.id,
+        startTime: new Date(t.startTime).toISOString(),
+        order: t.order
+      })));
+      throw error;
+    }
 
     // Reorder tasks (3, 1, 2)
     const reorderedTasks = [
@@ -102,7 +115,6 @@ describe('Database Integration', () => {
   });
 
   test('should handle tasks with same startTime but different order', async () => {
-    // Create tasks with identical startTime
     const now = Date.now();
     const tasks: Task[] = [
       { id: '1', description: 'Task A', category: 'Work', startTime: now, completed: false, pomodoros: 0 },
@@ -110,14 +122,27 @@ describe('Database Integration', () => {
       { id: '3', description: 'Task C', category: 'Work', startTime: now, completed: false, pomodoros: 0 }
     ];
 
-    // Add tasks with explicit order using updateAll
     await tasksDB.updateAll(tasks);
 
     // Verify order matches the array order
     const retrievedTasks = await tasksDB.getAll();
-    expect(retrievedTasks[0].id).toBe('1');
-    expect(retrievedTasks[1].id).toBe('2');
-    expect(retrievedTasks[2].id).toBe('3');
+    try {
+      expect(retrievedTasks[0].id).toBe('1');
+      expect(retrievedTasks[1].id).toBe('2');
+      expect(retrievedTasks[2].id).toBe('3');
+    } catch (error) {
+      console.error('FAILURE IN tasksDB.getAll() - Tasks with same startTime are sorted incorrectly');
+      console.error('The sorting logic in getAll() is reversed for both order and startTime:');
+      console.error('Current implementation:');
+      console.error('  - Order comparison: b.order - a.order (descending)');
+      console.error('  - StartTime comparison: b.startTime - a.startTime (descending)');
+      console.error('\nCurrent task order:', retrievedTasks.map(t => ({
+        id: t.id,
+        startTime: new Date(t.startTime).toISOString(),
+        order: t.order
+      })));
+      throw error;
+    }
 
     // Reorder tasks (3, 2, 1)
     const reorderedTasks = [
@@ -242,4 +267,32 @@ describe('Database Integration', () => {
       throw error;
     }
   }, 15000);
+
+  test('should handle transactions correctly', async () => {
+    const task: Task = {
+      id: 'transaction-test',
+      description: 'Test Transaction',
+      category: 'Work',
+      startTime: Date.now(),
+      completed: false,
+      pomodoros: 0
+    };
+
+    try {
+      // Should succeed because we're using the transaction correctly
+      await tasksDB.add(task);
+      
+      // Verify the task was added
+      const tasks = await tasksDB.getAll();
+      expect(tasks.length).toBe(1);
+      expect(tasks[0].id).toBe('transaction-test');
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB - Transaction failed unexpectedly');
+      console.error('Check that:');
+      console.error('1. store.add() is called immediately after getting the store');
+      console.error('2. transaction error handling is in place');
+      console.error('3. no delays or timeouts are used');
+      throw error;
+    }
+  });
 }); 

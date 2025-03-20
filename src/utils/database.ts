@@ -31,11 +31,8 @@ export const tasksDB = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
-      const request = store.add(task);
       
-      transaction.onerror = () => {
-        reject(transaction.error);
-      };
+      const request = store.add(task);
       
       request.onsuccess = () => {
         resolve(task.id);
@@ -43,6 +40,10 @@ export const tasksDB = {
       
       request.onerror = () => {
         reject(request.error);
+      };
+      
+      transaction.onerror = () => {
+        reject(transaction.error);
       };
     });
   },
