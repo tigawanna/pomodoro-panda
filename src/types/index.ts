@@ -8,6 +8,7 @@ export interface Task {
   focusPercentage?: number;
   completed: boolean;
   pomodoros?: number;
+  order?: number;
 }
 
 export type TimerType = 'work' | 'break' | 'longBreak';

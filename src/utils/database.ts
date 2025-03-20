@@ -69,45 +69,31 @@ export const tasksDB = {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
       
-      // Create a map of existing tasks for comparison
-      const getRequest = store.getAll();
-      
-      getRequest.onsuccess = () => {
-        const existingTasks = getRequest.result;
-        const updates: IDBRequest[] = [];
+      try {
+        // Clear existing tasks
+        store.clear();
         
-        // Update tasks with new order
+        // Add tasks with order
         tasks.forEach((task, index) => {
-          const taskWithOrder = { 
-            ...task, 
-            order: index,
-            // Preserve any existing fields not in the update
-            ...(existingTasks.find(t => t.id === task.id) || {})
-          };
-          updates.push(store.put(taskWithOrder));
+          store.add({
+            ...task,
+            order: index
+          });
         });
         
-        // Delete tasks that no longer exist
-        existingTasks
-          .filter(existing => !tasks.find(t => t.id === existing.id))
-          .forEach(taskToDelete => {
-            updates.push(store.delete(taskToDelete.id));
-          });
-        
         transaction.oncomplete = () => {
-          console.log('Task order update completed successfully');
+          console.log('Successfully updated all tasks');
           resolve();
         };
         
-        transaction.onerror = (event) => {
-          console.error('Failed to update task order:', event);
+        transaction.onerror = () => {
+          console.error('Failed to update tasks:', transaction.error);
           reject(transaction.error);
         };
-      };
-      
-      getRequest.onerror = () => {
-        reject(getRequest.error);
-      };
+      } catch (error) {
+        console.error('Error in updateAll:', error);
+        reject(error);
+      }
     });
   }
 }; 

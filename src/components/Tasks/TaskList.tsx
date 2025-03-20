@@ -44,7 +44,7 @@ export const TaskList: React.FC<TaskListProps> = ({
     setActiveId(event.active.id.toString());
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
@@ -55,12 +55,7 @@ export const TaskList: React.FC<TaskListProps> = ({
       const [movedTask] = newTasks.splice(oldIndex, 1);
       newTasks.splice(newIndex, 0, movedTask);
       
-      try {
-        await onReorder(newTasks);
-      } catch (error) {
-        console.error('Failed to reorder tasks:', error);
-        // The parent component (App.tsx) will handle the rollback
-      }
+      onReorder(newTasks);
     }
     
     setActiveId(null);
