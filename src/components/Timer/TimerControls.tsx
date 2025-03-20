@@ -2,32 +2,63 @@ import React from 'react';
 import styles from './Timer.module.css';
 
 interface TimerControlsProps {
-  isRunning: boolean;
+  isPaused: boolean;
+  hasStarted: boolean;
+  onStart: () => void;
   onResume: () => void;
   onPause: () => void;
+  onStop: () => void;
   onDone: () => void;
 }
 
 export const TimerControls: React.FC<TimerControlsProps> = ({
-  isRunning,
+  isPaused,
+  hasStarted,
+  onStart,
   onResume,
   onPause,
-  onDone
+  onStop,
+  onDone,
 }) => {
+  const renderPrimaryButton = () => {
+    if (!hasStarted) {
+      return (
+        <button className={styles.controlButton} onClick={onStart}>
+          START
+        </button>
+      );
+    }
+    
+    return (
+      <button className={styles.controlButton} onClick={isPaused ? onResume : onPause}>
+        {isPaused ? 'RESUME' : 'PAUSE'}
+      </button>
+    );
+  };
+
+  const renderSecondaryButton = () => {
+    if (!hasStarted) {
+      return (
+        <button className={`${styles.controlButton} ${styles.disabled}`} disabled>
+          STOP
+        </button>
+      );
+    }
+
+    return (
+      <button 
+        className={styles.controlButton} 
+        onClick={isPaused ? onDone : onStop}
+      >
+        {isPaused ? 'DONE' : 'STOP'}
+      </button>
+    );
+  };
+
   return (
     <div className={styles.controls}>
-      <button 
-        className={styles.controlButton}
-        onClick={isRunning ? onPause : onResume}
-      >
-        {isRunning ? 'PAUSE' : 'RESUME'}
-      </button>
-      <button 
-        className={styles.controlButton}
-        onClick={onDone}
-      >
-        DONE
-      </button>
+      {renderPrimaryButton()}
+      {renderSecondaryButton()}
     </div>
   );
 }; 

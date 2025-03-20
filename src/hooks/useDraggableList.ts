@@ -1,9 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
-import { throttle } from 'lodash';
-
-interface DraggableItem {
-  id: string;
-}
+import { useRef, useState } from 'react';
 
 interface UseDraggableListProps<T> {
   items: T[];

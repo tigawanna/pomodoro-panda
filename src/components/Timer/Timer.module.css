@@ -49,4 +49,21 @@
 
 .controlButton:hover {
   border-color: white;
+}
+
+.controlButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.timerContainer.work {
+  background-color: #d9534f;
+}
+
+.timerContainer.break {
+  background-color: #5cb85c;
+}
+
+.timerContainer.longBreak {
+  background-color: #428bca;
 } 
