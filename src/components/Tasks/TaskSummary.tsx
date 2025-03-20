@@ -8,7 +8,8 @@ export const TaskSummary: React.FC<TaskSummaryProps> = ({ tasks, settings }) => 
   
   const formatDuration = () => {
     if (minutes === 0) return `${hours}h`;
-    return `${hours}h ${minutes}m`;
+    else if (hours === 0) return `${minutes}m`;
+    else return `${hours}h ${minutes}m`;
   };
 
   return (
