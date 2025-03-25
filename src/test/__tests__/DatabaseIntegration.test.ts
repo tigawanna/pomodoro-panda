@@ -662,16 +662,16 @@ describe('Database Integration', () => {
       throw error;
     }
 
-
-    // Complete one pomodoro
+    // Complete first pomodoro
     const completedTime1 = Date.now();
+    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
     const completedPomodoro1 = {
       ...task,
-      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      id: `${task.id}-${completedTime1}`,
       completed: true,
       endTime: completedTime1,
       duration: completedTime1 - task.startTime,
-      pomodoros: 1 // Each completed entry represents one pomodoro
+      pomodoros: 1
     };
 
     try {
@@ -693,16 +693,16 @@ describe('Database Integration', () => {
       throw error;
     }
 
-
     // Complete second pomodoro
+    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
     const completedTime2 = Date.now();
     const completedPomodoro2 = {
       ...task,
-      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      id: `${task.id}-${completedTime2}`,
       completed: true,
       endTime: completedTime2,
       duration: completedTime2 - task.startTime,
-      pomodoros: 1 // Each completed entry represents one pomodoro
+      pomodoros: 1
     };
 
     try {
@@ -724,17 +724,17 @@ describe('Database Integration', () => {
       throw error;
     }
 
-    // complete the last pomodoro
+    // Complete third pomodoro
+    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
     const completedTime3 = Date.now();
     const completedPomodoro3 = {
       ...task,
-      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      id: `${task.id}-${completedTime3}`,
       completed: true,
       endTime: completedTime3,
       duration: completedTime3 - task.startTime,
-      pomodoros: 1 // Each completed entry represents one pomodoro
-    }
-
+      pomodoros: 1
+    };
 
     try {
       // verify active tasks are updated
@@ -748,11 +748,13 @@ describe('Database Integration', () => {
       expect(completedTasks.length).toBe(3)
       expect(completedTasks[0].id).toBe(completedPomodoro3.id)
       expect(completedTasks[0].pomodoros).toBe(1)
+      expect(completedTasks[1].id).toBe(completedPomodoro2.id)
+      expect(completedTasks[1].pomodoros).toBe(1)
+      expect(completedTasks[2].id).toBe(completedPomodoro1.id)
+      expect(completedTasks[2].pomodoros).toBe(1)
     } catch (error) {
       console.error('Failed to complete pomodoro:', error);
       throw error;
     }
-
-
   });
 }); 
