@@ -480,10 +480,12 @@ describe('Database Integration', () => {
 
   test('should handle deleting non-existent task', async () => {
     try {
+      // get all tasks
       await tasksDB.delete('non-existent-id');
       // Should not throw error for non-existent task
-    } catch {
-      fail('Should not throw error when deleting non-existent task');
+    } catch (error) {
+      console.error('FAILURE IN tasksDB.delete() - Should not throw error when deleting non-existent task');
+      throw error;
     }
   });
 
@@ -628,45 +630,7 @@ describe('Database Integration', () => {
     expect(tasks[0].order).toBe(task.order);
   });
 
-  test('should move task to completed store when marked as done', async () => {
-    // Create initial task with a startTime in the past
-    const startTime = Date.now() - 1000; // 1 second ago
-    const task: Task = {
-      id: 'complete-test',
-      description: 'Task to complete',
-      category: 'Work',
-      startTime,
-      completed: false,
-      pomodoros: 1
-    };
-
-    // Add task to active tasks
-    await tasksDB.add(task);
-
-    // Mark task as completed with current time
-    const completedTime = Date.now();
-    const completedTask = {
-      ...task,
-      completed: true,
-      endTime: completedTime,
-      duration: completedTime - startTime // Calculate actual duration
-    };
-
-    // Move to completed store
-    await tasksDB.markAsCompleted(completedTask);
-
-    // Verify task is in completed store
-    const completedTasks = await tasksDB.getCompletedTasks();
-    expect(completedTasks.length).toBe(1);
-    expect(completedTasks[0].id).toBe(task.id);
-    expect(completedTasks[0].endTime).toBe(completedTime);
-
-    // Verify task is removed from active store
-    const activeTasks = await tasksDB.getAll();
-    expect(activeTasks.length).toBe(0);
-  });
-
-  test('should handle completing one pomodoro of a multi-pomodoro task', async () => {
+  test('should handle completing of multi-pomodoro tasks and single pomodoro tasks', async () => {
 
     // Create initial task with multiple pomodoros
     const task: Task = {
@@ -686,39 +650,108 @@ describe('Database Integration', () => {
       throw error;
     }
 
+    // check that initial task is in active store and log it out
+    try {
+      const activeTasks = await tasksDB.getAll();
+      expect(activeTasks.length).toBe(1);
+      expect(activeTasks[0].id).toBe(task.id);
+      expect(activeTasks[0].pomodoros).toBe(3);
+    } catch (error) {
+      console.error('Failed to verify initial task in active store:', error);
+      throw error;
+    }
+
+
     // Complete one pomodoro
-    const completedTime = Date.now();
-    const completedPomodoro = {
+    const completedTime1 = Date.now();
+    const completedPomodoro1 = {
       ...task,
       id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
       completed: true,
-      endTime: completedTime,
-      duration: completedTime - task.startTime,
+      endTime: completedTime1,
+      duration: completedTime1 - task.startTime,
       pomodoros: 1 // Each completed entry represents one pomodoro
     };
 
     try {
-      await tasksDB.completeOnePomodoro(task.id, completedPomodoro);
+      // verify active tasks are updated
+      await tasksDB.completeOnePomodoro(task.id, completedPomodoro1);
+      const activeTasks = await tasksDB.getAll();
+
+      expect(activeTasks.length).toBe(1);
+      expect(activeTasks[0].id).toBe(task.id);
+      expect(activeTasks[0].pomodoros).toBe(2);
+
+      // verify completed tasks are updated
+      const completedTasks = await tasksDB.getCompletedTasks()
+      expect(completedTasks.length).toBe(1)
+      expect(completedTasks[0].id).toBe(completedPomodoro1.id)
+      expect(completedTasks[0].pomodoros).toBe(1)
     } catch (error) {
       console.error('Failed to complete pomodoro:', error);
       throw error;
     }
 
-    // Verify pomodoro is in completed store
+
+    // Complete second pomodoro
+    const completedTime2 = Date.now();
+    const completedPomodoro2 = {
+      ...task,
+      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      completed: true,
+      endTime: completedTime2,
+      duration: completedTime2 - task.startTime,
+      pomodoros: 1 // Each completed entry represents one pomodoro
+    };
+
     try {
-      const completedTasks = await tasksDB.getCompletedTasks(); 
+      // verify active tasks are updated
+      await tasksDB.completeOnePomodoro(task.id, completedPomodoro2);
 
       const activeTasks = await tasksDB.getAll();
       expect(activeTasks.length).toBe(1);
+      expect(activeTasks[0].id).toBe(task.id);
+      expect(activeTasks[0].pomodoros).toBe(1);
 
-      expect(completedTasks.length).toBe(1);
+      // verify completed tasks are updated
+      const completedTasks = await tasksDB.getCompletedTasks()
+      expect(completedTasks.length).toBe(2)
+      expect(completedTasks[0].id).toBe(completedPomodoro2.id)
+      expect(completedTasks[0].pomodoros).toBe(1)
     } catch (error) {
-      console.error('Verification failed:', error);
-      console.error('Test state:', {
-        originalTaskId: task.id,
-        completedPomodoroId: completedPomodoro.id
-      });
+      console.error('Failed to complete pomodoro:', error);
       throw error;
     }
+
+    // complete the last pomodoro
+    const completedTime3 = Date.now();
+    const completedPomodoro3 = {
+      ...task,
+      id: `${task.id}-${Date.now()}`, // Unique ID for this pomodoro completion
+      completed: true,
+      endTime: completedTime3,
+      duration: completedTime3 - task.startTime,
+      pomodoros: 1 // Each completed entry represents one pomodoro
+    }
+
+
+    try {
+      // verify active tasks are updated
+      await tasksDB.completeOnePomodoro(task.id, completedPomodoro3);
+
+      const activeTasks = await tasksDB.getAll();
+      expect(activeTasks.length).toBe(0);
+
+      // verify completed tasks are updated
+      const completedTasks = await tasksDB.getCompletedTasks()
+      expect(completedTasks.length).toBe(3)
+      expect(completedTasks[0].id).toBe(completedPomodoro3.id)
+      expect(completedTasks[0].pomodoros).toBe(1)
+    } catch (error) {
+      console.error('Failed to complete pomodoro:', error);
+      throw error;
+    }
+
+
   });
 }); 
