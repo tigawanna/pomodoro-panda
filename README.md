@@ -46,7 +46,15 @@ src/
 
 1. Clone the repository
 
+```bash
+git clone git@github.com:adrianmurage/pomodoro-tracker.git
+```
+
 2. Install dependencies
+
+```bash
+yarn install
+```
 
 ## Development
 
