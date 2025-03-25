@@ -485,7 +485,8 @@ describe('Database Integration', () => {
       // Should not throw error for non-existent task
     } catch (error) {
       console.error('FAILURE IN tasksDB.delete() - Should not throw error when deleting non-existent task');
-      throw error;
+      console.error('Error:', error);
+      fail('Should not throw error when deleting non-existent task');
     }
   });
 
