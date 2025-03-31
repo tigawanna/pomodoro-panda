@@ -57,7 +57,7 @@ function App() {
       await tasksDB.add(newTask);
       setTasks(prev => [newTask, ...prev]);
       setNotification({
-        message: 'Task added successfully',
+        message: 'New task added',
         type: 'success'
       });
     } catch (error) {
@@ -87,8 +87,8 @@ function App() {
       await tasksDB.delete(taskId);
       setTasks(prev => prev.filter(task => task.id !== taskId));
       setNotification({
-        message: 'Task deleted successfully',
-        type: 'success'
+        message: 'Task deleted',
+        type: 'info'
       });
     } catch (error) {
       console.error('Failed to delete task:', error);
@@ -132,8 +132,8 @@ function App() {
       await tasksDB.update(updatedTask);
       setTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
       setNotification({
-        message: 'Task updated successfully',
-        type: 'success'
+        message: 'Task updated',
+        type: 'info'
       });
     } catch (error) {
       console.error('Failed to update task:', error);
@@ -183,7 +183,7 @@ function App() {
         ));
         setNotification({
           message: 'Added pomodoro to existing task',
-          type: 'success'
+          type: 'info'
         });
       } catch (error) {
         console.error('Failed to update task:', error);
