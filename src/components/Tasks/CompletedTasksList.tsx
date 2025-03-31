@@ -1,11 +1,16 @@
 import { Task } from '../../types';
 import styles from './Tasks.module.css';
 import completedStyles from './CompletedTasksList.module.css';
+
 interface CompletedTasksListProps {
   tasks: Task[];
+  onRepeatTask: (category: string, description: string) => void;
 }
 
-export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({ tasks }) => {
+export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({ 
+  tasks,
+  onRepeatTask 
+}) => {
   if (tasks.length === 0) return null;
 
   return (
@@ -20,8 +25,6 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({ tasks })
       <div className={completedStyles.completedTasksHeader}>
         <div className={completedStyles.taskCategory}>Category</div>
         <div className={completedStyles.taskDescription}>Description</div>
-        <div className={completedStyles.taskTime}>Completed Time</div>
-        <div className={completedStyles.taskDuration}>Duration</div>
       </div>
       
       <div role="list" aria-label="Completed tasks" className={completedStyles.completedTasksList}>
@@ -39,10 +42,17 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({ tasks })
                 minute: '2-digit'
               })}
             </div>
+            <div className={styles.taskTime}>
+              {Math.round(task.duration! / 60000)}m
+            </div>
             <div className={styles.taskActions}>
-              <span className={styles.taskTime}>
-                {Math.round(task.duration! / 60000)}m
-              </span>
+              <button
+                className={completedStyles.repeatButton}
+                onClick={() => onRepeatTask(task.category, task.description)}
+                aria-label={`Repeat task: ${task.description}`}
+              >
+                🔄
+              </button>
             </div>
           </div>
         ))}

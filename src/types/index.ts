@@ -120,4 +120,9 @@ export interface CompletionIndicatorProps {
 export interface TaskSummaryProps {
   tasks: Task[];
   settings?: TimerSettings;
+}
+
+interface CompletedTasksListProps {
+  tasks: Task[];
+  onRepeatTask: (category: string, description: string) => void;
 } 

@@ -161,7 +161,10 @@ function App() {
           onUpdatePomodoros={handleUpdatePomodoros}
           onEditTask={handleEditTask}
         />
-        <CompletedTasksList tasks={completedTasks} />
+        <CompletedTasksList 
+          tasks={completedTasks} 
+          onRepeatTask={handleAddTask}
+        />
       </main>
       {notification && (
         <Notification
