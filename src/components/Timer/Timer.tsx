@@ -10,6 +10,7 @@ import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
 import { tasksDB } from '../../utils/database';
+import { TIMER_TYPES } from '../../constants/timerConstants';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -17,10 +18,10 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
 
-    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted, switchTimer } =
+    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted, switchTimer, settings } =
         useTimer({
             onComplete: async (type) => {
-                if (type === 'work') {
+                if (type === TIMER_TYPES.WORK) {
                     await handleDone();
                 }
                 showNotification(type);
@@ -63,15 +64,13 @@ export const Timer: React.FC<TimerProps> = ({
             timerType.charAt(0).toUpperCase() + timerType.slice(1)
         } session completed!`;
 
-        // Get duration from timer settings (25 minutes for work sessions)
         const completedTask = {
             ...selectedTask,
             id: `completed-${selectedTask.id}-${Date.now()}`,
             endTime: Date.now(),
-            // TODO: get duration from timer settings
-            duration: 25 * 60 * 1000, // This should come from timer settings
+            duration: settings.workDuration * 1000, // Using settings instead of hardcoded value
             completed: true,
-            pomodoros: 1, // Each completed pomodoro is 1
+            pomodoros: 1,
         };
 
         console.log('Attempting to complete pomodoro:', {
@@ -98,14 +97,14 @@ export const Timer: React.FC<TimerProps> = ({
     const getTimerTitle = () => {
         const session = Math.floor(sessionsCompleted / 2) + 1;
         switch (timerType) {
-            case 'work':
+            case TIMER_TYPES.WORK:
                 return `Pomodoro ${session}`;
-            case 'break':
+            case TIMER_TYPES.BREAK:
                 return 'Short Break';
-            case 'longBreak':
+            case TIMER_TYPES.LONG_BREAK:
                 return 'Long Break';
             default:
-                return 'Pomodoro';
+                return 'Timer';
         }
     };
 

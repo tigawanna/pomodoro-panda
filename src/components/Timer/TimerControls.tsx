@@ -1,5 +1,6 @@
 import React from 'react';
 import { TimerControlsProps } from '../../types';
+import { TIMER_TYPES } from '../../constants/timerConstants';
 import styles from './Timer.module.css';
 
 export const TimerControls: React.FC<TimerControlsProps> = ({
@@ -18,9 +19,9 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
     if (!hasStarted) {
       return (
         <button 
-          className={`${styles.controlButton} ${(disableWorkTimer && timerType === 'work') ? styles.disabled : ''}`} 
+          className={`${styles.controlButton} ${(disableWorkTimer && timerType === TIMER_TYPES.WORK) ? styles.disabled : ''}`} 
           onClick={onStart}
-          disabled={disableWorkTimer && timerType === 'work'}
+          disabled={disableWorkTimer && timerType === TIMER_TYPES.WORK}
         >
           START
         </button>
@@ -36,7 +37,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
 
   const renderSecondaryButton = () => {
     if (!hasStarted) {
-      const isBreak = timerType === 'break' || timerType === 'longBreak';
+      const isBreak = timerType === TIMER_TYPES.BREAK || timerType === TIMER_TYPES.LONG_BREAK;
       if (isBreak && onSkip) {
         return (
           <button className={styles.controlButton} onClick={onSkip}>

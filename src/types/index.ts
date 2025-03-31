@@ -1,6 +1,6 @@
-// Timer related types
-export type TimerType = 'work' | 'break' | 'longBreak';
+import { TimerType } from '../constants/timerConstants';
 
+// Timer related types
 export interface TimerSettings {
   workDuration: number;
   breakDuration: number;
@@ -31,7 +31,7 @@ export interface Task {
 // Component Props
 export interface TimerProps {
   selectedTask: Task | null;
-  onTaskComplete: () => void;
+  onTaskComplete: () => Promise<void>;
 }
 
 export interface TimerControlsProps {

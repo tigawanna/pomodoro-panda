@@ -1,29 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
-import { TimerType, UseTimerProps, TimerSettings } from '../types';
+import { UseTimerProps } from '../types';
+import { DEFAULT_TIMER_SETTINGS, TIMER_TYPES, TimerType } from '../constants/timerConstants';
 
-const DEFAULT_SETTINGS: TimerSettings = {
-  workDuration: 0.5 * 60, // 25 minutes
-  breakDuration: 5 * 60, // 5 minutes
-  longBreakDuration: 15 * 60, // 15 minutes
-  sessionsUntilLongBreak: 4
-};
-
-export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerProps = {}) => {
+export const useTimer = ({ onComplete, settings = DEFAULT_TIMER_SETTINGS }: UseTimerProps = {}) => {
   const [timeLeft, setTimeLeft] = useState(settings.workDuration);
   const [isRunning, setIsRunning] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
-  const [timerType, setTimerType] = useState<TimerType>('work');
+  const [timerType, setTimerType] = useState<TimerType>(TIMER_TYPES.WORK);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
 
   const getNextTimer = useCallback(() => {
-    if (timerType === 'work') {
+    if (timerType === TIMER_TYPES.WORK) {
       const nextSessions = sessionsCompleted + 1;
       if (nextSessions % settings.sessionsUntilLongBreak === 0) {
-        return { type: 'longBreak' as TimerType, duration: settings.longBreakDuration };
+        return { type: TIMER_TYPES.LONG_BREAK as TimerType, duration: settings.longBreakDuration };
       }
-      return { type: 'break' as TimerType, duration: settings.breakDuration };
+      return { type: TIMER_TYPES.BREAK as TimerType, duration: settings.breakDuration };
     }
-    return { type: 'work' as TimerType, duration: settings.workDuration };
+    return { type: TIMER_TYPES.WORK as TimerType, duration: settings.workDuration };
   }, [timerType, sessionsCompleted, settings]);
 
   const switchTimer = useCallback(() => {
@@ -33,7 +27,7 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     setIsRunning(false);
     setHasStarted(false);
     
-    if (type === 'work') {
+    if (type === TIMER_TYPES.WORK) {
       setSessionsCompleted(prev => prev + 1);
     }
   }, [getNextTimer]);
@@ -65,7 +59,7 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     setIsRunning(false);
     setHasStarted(false);
     setTimeLeft(settings.workDuration);
-    setTimerType('work');
+    setTimerType(TIMER_TYPES.WORK);
     setSessionsCompleted(0);
   }, [settings.workDuration]);
 
@@ -78,6 +72,7 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     start,
     pause,
     reset,
-    switchTimer
+    switchTimer,
+    settings
   };
 }; 

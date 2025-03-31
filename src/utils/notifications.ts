@@ -1,8 +1,5 @@
-const NOTIFICATION_MESSAGES = {
-  work: "Time to focus!",
-  break: "Take a short break!",
-  longBreak: "Time for a long break!"
-};
+import { NOTIFICATION_MESSAGES } from '../constants/timerConstants';
+import type { TimerType } from '../constants/timerConstants';
 
 export const initializeNotifications = async () => {
   if (!("Notification" in window)) {
@@ -29,7 +26,7 @@ export const playNotificationSound = () => {
   });
 };
 
-export const showNotification = (timerType: 'work' | 'break' | 'longBreak') => {
+export const showNotification = (timerType: TimerType) => {
   console.log('Notification permission:', Notification.permission);
   console.log('Window focused:', document.hasFocus());
 

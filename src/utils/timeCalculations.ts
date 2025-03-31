@@ -1,17 +1,10 @@
 import { Task, TimerSettings } from '../types';
-
-const DEFAULT_SETTINGS: TimerSettings = {
-  // TODO: get duration from timer settings
-  workDuration: 0.5 * 60,
-  breakDuration: 5 * 60,
-  longBreakDuration: 15 * 60,
-  sessionsUntilLongBreak: 4
-};
+import { DEFAULT_TIMER_SETTINGS } from '../constants/timerConstants';
 
 export const calculateEstimatedCompletion = (
   tasks: Task[], 
   taskIndex: number,
-  settings: TimerSettings = DEFAULT_SETTINGS
+  settings: TimerSettings = DEFAULT_TIMER_SETTINGS
 ): number => {
   const now = Date.now();
   let totalMinutes = 0;
@@ -40,7 +33,7 @@ export const calculateEstimatedCompletion = (
 
 export const calculateTotalDuration = (
   tasks: Task[],
-  settings: TimerSettings = DEFAULT_SETTINGS
+  settings: TimerSettings = DEFAULT_TIMER_SETTINGS
 ): { hours: number; minutes: number } => {
   let totalMinutes = 0;
 
