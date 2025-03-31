@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { TimerType, UseTimerProps, TimerSettings } from '../types';
 
 const DEFAULT_SETTINGS: TimerSettings = {
-  workDuration: 25 * 60, // 25 minutes
+  workDuration: 0.5 * 60, // 25 minutes
   breakDuration: 5 * 60, // 5 minutes
   longBreakDuration: 15 * 60, // 15 minutes
   sessionsUntilLongBreak: 4

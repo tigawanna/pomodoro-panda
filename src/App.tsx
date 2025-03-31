@@ -5,13 +5,17 @@ import { Timer } from './components/Timer';
 import { Notification } from './components/Notification';
 import { Task, NotificationState } from './types';
 import { tasksDB } from './utils/database';
+import { v4 as uuidv4 } from 'uuid';
+import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [notification, setNotification] = useState<NotificationState | null>(null);
+  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
 
   useEffect(() => {
     loadTasks();
+    loadCompletedTasks();
   }, []);
 
   const loadTasks = async () => {
@@ -27,12 +31,24 @@ function App() {
     }
   };
 
+  const loadCompletedTasks = async () => {
+    try {
+      const tasks = await tasksDB.getCompletedTasks();
+      setCompletedTasks(tasks);
+    } catch (error) {
+      console.error('Failed to load completed tasks:', error);
+      setNotification({
+        message: 'Failed to load completed tasks',
+        type: 'error'
+      });
+    }
+  };
+
   const handleAddTask = async (category: string, description: string) => {
     const newTask: Task = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       category,
       description,
-      startTime: Date.now(),
       completed: false,
       pomodoros: 1
     };
@@ -109,12 +125,20 @@ function App() {
     }
   };
 
+  const handleTaskComplete = async () => {
+    await loadTasks();
+    await loadCompletedTasks();
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
     <div className="app">
       <main className="main-content">
-        <Timer selectedTask={activeTask} />
+        <Timer 
+          selectedTask={activeTask} 
+          onTaskComplete={handleTaskComplete}
+        />
         <TaskInput onAddTask={handleAddTask} />
         <TaskList
           tasks={tasks}
@@ -124,6 +148,7 @@ function App() {
           onUpdatePomodoros={handleUpdatePomodoros}
           onEditTask={handleEditTask}
         />
+        <CompletedTasksList tasks={completedTasks} />
       </main>
       {notification && (
         <Notification

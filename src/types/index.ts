@@ -21,18 +21,17 @@ export interface Task {
   id: string;
   category: string;
   description: string;
-  startTime: number;
   endTime?: number;
   duration?: number;
-  focusPercentage?: number;
   completed: boolean;
-  pomodoros?: number;
+  pomodoros: number;
   order?: number;
 }
 
 // Component Props
 export interface TimerProps {
   selectedTask: Task | null;
+  onTaskComplete: () => void;
 }
 
 export interface TimerControlsProps {

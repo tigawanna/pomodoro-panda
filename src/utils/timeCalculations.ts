@@ -1,7 +1,8 @@
 import { Task, TimerSettings } from '../types';
 
 const DEFAULT_SETTINGS: TimerSettings = {
-  workDuration: 25 * 60,
+  // TODO: get duration from timer settings
+  workDuration: 0.5 * 60,
   breakDuration: 5 * 60,
   longBreakDuration: 15 * 60,
   sessionsUntilLongBreak: 4

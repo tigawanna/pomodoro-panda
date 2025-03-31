@@ -241,6 +241,7 @@ export const tasksDB = {
 
   async completeOnePomodoro(taskId: string, completedPomodoro: Task): Promise<void> {
     const db = await initDB();
+    console.log('Starting pomodoro completion for task:', taskId);
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE, COMPLETED_TASKS_STORE], "readwrite");
 
@@ -262,6 +263,7 @@ export const tasksDB = {
 
       getRequest.onsuccess = () => {
         const originalTask = getRequest.result;
+        console.log('Original task:', originalTask);
         if (!originalTask) {
           transaction.abort();
           reject(new Error('Task not found'));

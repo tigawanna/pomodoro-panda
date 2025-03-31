@@ -1,0 +1,37 @@
+.completedTasks {
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.completedTask {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--background-secondary);
+  border-radius: 0.5rem;
+}
+
+.taskInfo {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.category {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.taskMeta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+} 
