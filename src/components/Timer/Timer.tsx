@@ -103,7 +103,7 @@ export const Timer: React.FC<TimerProps> = ({
     }, []);
 
     const getTimerTitle = () => {
-        const session = Math.floor(sessionsCompleted / 2) + 1;
+        const session = Math.floor(sessionsCompleted) + 1;
         const title = TIMER_TITLES[timerType];
         return typeof title === 'function' ? title(session) : title;
     };
