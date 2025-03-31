@@ -42,6 +42,8 @@ export interface TimerControlsProps {
   onPause: () => void;
   onStop: () => void;
   onDone: () => void;
+  disableWorkTimer?: boolean;
+  timerType: TimerType;
 }
 
 export interface TimerDisplayProps {

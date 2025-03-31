@@ -10,11 +10,17 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onPause,
   onStop,
   onDone,
+  disableWorkTimer = false,
+  timerType
 }) => {
   const renderPrimaryButton = () => {
     if (!hasStarted) {
       return (
-        <button className={styles.controlButton} onClick={onStart}>
+        <button 
+          className={`${styles.controlButton} ${(disableWorkTimer && timerType === 'work') ? styles.disabled : ''}`} 
+          onClick={onStart}
+          disabled={disableWorkTimer && timerType === 'work'}
+        >
           START
         </button>
       );

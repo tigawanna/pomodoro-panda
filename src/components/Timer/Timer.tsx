@@ -31,6 +31,8 @@ export const Timer: React.FC<TimerProps> = ({
             },
         });
 
+    const canStartWorkTimer = selectedTask !== null;
+
     const handleStart = () => {
         start();
     };
@@ -130,6 +132,8 @@ export const Timer: React.FC<TimerProps> = ({
                     onPause={handlePause}
                     onStop={handleStop}
                     onDone={handleDone}
+                    disableWorkTimer={!canStartWorkTimer}
+                    timerType={timerType}
                 />
             </div>
             {notification && (
