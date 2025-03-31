@@ -124,5 +124,5 @@ export interface TaskSummaryProps {
 
 interface CompletedTasksListProps {
   tasks: Task[];
-  onRepeatTask: (category: string, description: string) => void;
+  onRepeatTask: (category: string, description: string, pomodoros?: number) => void;
 } 

@@ -53,8 +53,20 @@ function App() {
       pomodoros: 1
     };
 
-    await tasksDB.add(newTask);
-    setTasks(prev => [newTask, ...prev]);
+    try {
+      await tasksDB.add(newTask);
+      setTasks(prev => [newTask, ...prev]);
+      setNotification({
+        message: 'Task added successfully',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Failed to add task:', error);
+      setNotification({
+        message: 'Failed to add task',
+        type: 'error'
+      });
+    }
   };
 
   const handleReorderTasks = async (reorderedTasks: Task[]) => {
@@ -74,9 +86,16 @@ function App() {
     try {
       await tasksDB.delete(taskId);
       setTasks(prev => prev.filter(task => task.id !== taskId));
+      setNotification({
+        message: 'Task deleted successfully',
+        type: 'success'
+      });
     } catch (error) {
       console.error('Failed to delete task:', error);
-      // Optionally show an error notification to the user
+      setNotification({
+        message: 'Failed to delete task',
+        type: 'error'
+      });
     }
   };
 
@@ -143,6 +162,42 @@ function App() {
     }
 };
 
+  const handleRepeatTask = async (category: string, description: string, pomodoros: number = 1) => {
+    // Check for existing task with same category and description
+    const existingTask = tasks.find(t => 
+      t.category === category && 
+      t.description === description
+    );
+
+    if (existingTask) {
+      // Update existing task's pomodoros
+      const updatedTask = {
+        ...existingTask,
+        pomodoros: (existingTask.pomodoros || 1) + (pomodoros || 1)
+      };
+      
+      try {
+        await tasksDB.update(updatedTask);
+        setTasks(prev => prev.map(t => 
+          t.id === existingTask.id ? updatedTask : t
+        ));
+        setNotification({
+          message: 'Added pomodoro to existing task',
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('Failed to update task:', error);
+        setNotification({
+          message: 'Failed to update task',
+          type: 'error'
+        });
+      }
+    } else {
+      // Create new task
+      handleAddTask(category, description);
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
@@ -163,7 +218,7 @@ function App() {
         />
         <CompletedTasksList 
           tasks={completedTasks} 
-          onRepeatTask={handleAddTask}
+          onRepeatTask={handleRepeatTask}
         />
       </main>
       {notification && (

@@ -4,7 +4,7 @@ import completedStyles from './CompletedTasksList.module.css';
 
 interface CompletedTasksListProps {
   tasks: Task[];
-  onRepeatTask: (category: string, description: string) => void;
+  onRepeatTask: (category: string, description: string, pomodoros?: number) => void;
 }
 
 export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({ 
@@ -12,6 +12,10 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({
   onRepeatTask 
 }) => {
   if (tasks.length === 0) return null;
+
+  const handleRepeat = (task: Task) => {
+    onRepeatTask(task.category, task.description, task.pomodoros || 1);
+  };
 
   return (
     <div className={styles.taskList}>
@@ -48,7 +52,7 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({
             <div className={styles.taskActions}>
               <button
                 className={completedStyles.repeatButton}
-                onClick={() => onRepeatTask(task.category, task.description)}
+                onClick={() => handleRepeat(task)}
                 aria-label={`Repeat task: ${task.description}`}
               >
                 🔄
