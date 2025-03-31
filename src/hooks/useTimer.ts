@@ -11,6 +11,7 @@ const DEFAULT_SETTINGS: TimerSettings = {
 export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerProps = {}) => {
   const [timeLeft, setTimeLeft] = useState(settings.workDuration);
   const [isRunning, setIsRunning] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [timerType, setTimerType] = useState<TimerType>('work');
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
 
@@ -30,6 +31,7 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     setTimerType(type);
     setTimeLeft(duration);
     setIsRunning(false);
+    setHasStarted(false);
     
     if (type === 'work') {
       setSessionsCompleted(prev => prev + 1);
@@ -52,10 +54,16 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     return () => clearInterval(interval);
   }, [isRunning, timeLeft, onComplete, switchTimer, timerType]);
 
-  const start = useCallback(() => setIsRunning(true), []);
+  const start = useCallback(() => {
+    setIsRunning(true);
+    setHasStarted(true);
+  }, []);
+
   const pause = useCallback(() => setIsRunning(false), []);
+
   const reset = useCallback(() => {
     setIsRunning(false);
+    setHasStarted(false);
     setTimeLeft(settings.workDuration);
     setTimerType('work');
     setSessionsCompleted(0);
@@ -66,6 +74,7 @@ export const useTimer = ({ onComplete, settings = DEFAULT_SETTINGS }: UseTimerPr
     isRunning,
     timerType,
     sessionsCompleted,
+    hasStarted,
     start,
     pause,
     reset,

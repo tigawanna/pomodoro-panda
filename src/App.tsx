@@ -126,9 +126,22 @@ function App() {
   };
 
   const handleTaskComplete = async () => {
-    await loadTasks();
-    await loadCompletedTasks();
-  };
+    console.log('Task complete - updating lists');
+    try {
+        const [tasks, completedTasks] = await Promise.all([
+            tasksDB.getAll(),
+            tasksDB.getCompletedTasks()
+        ]);
+        setTasks(tasks);
+        setCompletedTasks(completedTasks);
+    } catch (error) {
+        console.error('Error updating lists after task completion:', error);
+        setNotification({
+            message: 'Failed to update task lists',
+            type: 'error'
+        });
+    }
+};
 
   const activeTask = tasks[0] || null;
 

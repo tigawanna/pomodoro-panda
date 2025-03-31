@@ -15,11 +15,9 @@ export const Timer: React.FC<TimerProps> = ({
     selectedTask,
     onTaskComplete,
 }) => {
-    const [hasStarted, setHasStarted] = useState(false);
-    const [isPaused, setIsPaused] = useState(false);
     const [notification, setNotification] = useState<string | null>(null);
 
-    const { timeLeft, start, pause, reset, timerType, sessionsCompleted } =
+    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted } =
         useTimer({
             onComplete: async (type) => {
                 if (type === 'work') {
@@ -34,23 +32,18 @@ export const Timer: React.FC<TimerProps> = ({
         });
 
     const handleStart = () => {
-        setHasStarted(true);
         start();
     };
 
     const handlePause = () => {
-        setIsPaused(true);
         pause();
     };
 
     const handleResume = () => {
-        setIsPaused(false);
         start();
     };
 
     const handleStop = () => {
-        setHasStarted(false);
-        setIsPaused(false);
         reset();
     };
 
@@ -90,10 +83,6 @@ export const Timer: React.FC<TimerProps> = ({
             console.error('Failed to complete task:', error);
             showInAppNotification('Failed to complete task');
         }
-
-        setHasStarted(false);
-        setIsPaused(false);
-        reset();
     };
 
     useEffect(() => {
@@ -134,7 +123,7 @@ export const Timer: React.FC<TimerProps> = ({
                         : 'No task selected'}
                 </div>
                 <TimerControls
-                    isPaused={isPaused}
+                    isPaused={!hasStarted}
                     hasStarted={hasStarted}
                     onStart={handleStart}
                     onResume={handleResume}
