@@ -3,10 +3,23 @@ import './App.css';
 import { TaskInput, TaskList } from './components/Tasks';
 import { Timer } from './components/Timer';
 import { Notification } from './components/Notification';
-import { Task, NotificationState } from './types';
+import { Task, NotificationState, TimerType } from './types';
 import { tasksDB } from './utils/database';
 import { v4 as uuidv4 } from 'uuid';
 import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
+
+export interface TimerControlsProps {
+  isPaused: boolean;
+  hasStarted: boolean;
+  onStart: () => void;
+  onResume: () => void;
+  onPause: () => void;
+  onStop: () => void;
+  onDone: () => void;
+  onSkip?: () => void;
+  disableWorkTimer?: boolean;
+  timerType: TimerType;
+}
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);

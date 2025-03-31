@@ -44,6 +44,7 @@ export interface TimerControlsProps {
   onDone: () => void;
   disableWorkTimer?: boolean;
   timerType: TimerType;
+  onSkip: () => void;
 }
 
 export interface TimerDisplayProps {
@@ -122,7 +123,7 @@ export interface TaskSummaryProps {
   settings?: TimerSettings;
 }
 
-interface CompletedTasksListProps {
+export interface CompletedTasksListProps {
   tasks: Task[];
   onRepeatTask: (category: string, description: string, pomodoros?: number) => void;
 } 

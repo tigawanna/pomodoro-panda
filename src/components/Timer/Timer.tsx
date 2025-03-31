@@ -17,7 +17,7 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
 
-    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted } =
+    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted, switchTimer } =
         useTimer({
             onComplete: async (type) => {
                 if (type === 'work') {
@@ -47,6 +47,10 @@ export const Timer: React.FC<TimerProps> = ({
 
     const handleStop = () => {
         reset();
+    };
+
+    const handleSkip = () => {
+        switchTimer();
     };
 
     const showInAppNotification = (message: string) => {
@@ -132,6 +136,7 @@ export const Timer: React.FC<TimerProps> = ({
                     onPause={handlePause}
                     onStop={handleStop}
                     onDone={handleDone}
+                    onSkip={handleSkip}
                     disableWorkTimer={!canStartWorkTimer}
                     timerType={timerType}
                 />

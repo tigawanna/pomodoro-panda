@@ -25,7 +25,7 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({
         </div>
       </div>
 
-      {/* addd a header section with category & description */}
+      {/* add a header section with category & description */}
       <div className={completedStyles.completedTasksHeader}>
         <div className={completedStyles.taskCategory}>Category</div>
         <div className={completedStyles.taskDescription}>Description</div>
