@@ -258,36 +258,52 @@ export const tasksDB = {
       const tasksStore = transaction.objectStore(TASKS_STORE);
       const completedStore = transaction.objectStore(COMPLETED_TASKS_STORE);
 
-      // Get original task
-      const getRequest = tasksStore.get(taskId);
+      // First check if ID already exists in completed store
+      const checkRequest = completedStore.get(completedPomodoro.id);
+      
+      checkRequest.onsuccess = () => {
+        if (checkRequest.result) {
+          console.error('Duplicate task ID detected when completing pomodoro:', completedPomodoro.id);
+          // Modify the ID to make it unique
+          completedPomodoro.id = `${completedPomodoro.id}_${Date.now()}`;
+        }
 
-      getRequest.onsuccess = () => {
-        const originalTask = getRequest.result;
-        console.log('Original task:', originalTask);
-        if (!originalTask) {
+        // Get original task
+        const getRequest = tasksStore.get(taskId);
+
+        getRequest.onsuccess = () => {
+          const originalTask = getRequest.result;
+          console.log('Original task:', originalTask);
+          if (!originalTask) {
+            transaction.abort();
+            reject(new Error('Task not found'));
+            return;
+          }
+          const remainingPomodoros = (originalTask.pomodoros || 0) - 1;
+          
+          // Add to completed store
+          completedStore.add(completedPomodoro);
+          
+          // Update or delete original task
+          if (remainingPomodoros >= 1) {
+            tasksStore.put({
+              ...originalTask,
+              pomodoros: remainingPomodoros
+            });
+          } else {
+            tasksStore.delete(taskId);
+          }
+        };
+
+        getRequest.onerror = () => {
           transaction.abort();
-          reject(new Error('Task not found'));
-          return;
-        }
-        const remainingPomodoros = (originalTask.pomodoros || 0) - 1;
-        
-        // Add to completed store
-        completedStore.add(completedPomodoro);
-        
-        // Update or delete original task
-        if (remainingPomodoros >= 1) {
-          tasksStore.put({
-            ...originalTask,
-            pomodoros: remainingPomodoros
-          });
-        } else {
-          tasksStore.delete(taskId);
-        }
+          reject(getRequest.error);
+        };
       };
 
-      getRequest.onerror = () => {
+      checkRequest.onerror = () => {
         transaction.abort();
-        reject(getRequest.error);
+        reject(checkRequest.error);
       };
     });
   }

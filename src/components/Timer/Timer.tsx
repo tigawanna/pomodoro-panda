@@ -67,7 +67,7 @@ export const Timer: React.FC<TimerProps> = ({
         // Get duration from timer settings (25 minutes for work sessions)
         const completedTask = {
             ...selectedTask,
-            id: `completed-${selectedTask.id}`,
+            id: `completed-${selectedTask.id}-${Date.now()}`,
             endTime: Date.now(),
             // TODO: get duration from timer settings
             duration: 25 * 60 * 1000, // This should come from timer settings
