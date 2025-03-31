@@ -37,9 +37,9 @@ export const Timer: React.FC<TimerProps> = ({
         onComplete: async (type) => {
             if (type === TIMER_TYPES.WORK) {
                 await handleDone();
+                showNotification(type);
+                setNotification(COMPLETION_MESSAGES[type]);
             }
-            showNotification(type);
-            setNotification(COMPLETION_MESSAGES[type]);
         },
     });
 
@@ -91,7 +91,6 @@ export const Timer: React.FC<TimerProps> = ({
             console.log('Pomodoro completed successfully');
             await onTaskComplete();
             showInAppNotification(COMPLETION_MESSAGES[timerType]);
-            showNotification(timerType);
         } catch (error) {
             console.error('Failed to complete task:', error);
             showInAppNotification(ERROR_MESSAGES.TASK_COMPLETE_FAILED);
