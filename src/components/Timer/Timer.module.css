@@ -1,10 +1,25 @@
 .timerContainer {
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--spacing-md);
   border-radius: var(--border-radius-sm);
   text-align: center;
-  position: relative;
-  margin-bottom: var(--spacing-lg);
+  transition: background-color 0.3s ease;
+  color: var(--color-white);
+}
+
+/* Timer type themes */
+.work {
+  background-color: var(--color-primary);
+}
+
+.break {
+  background-color: var(--color-success);
+}
+
+.longBreak {
+  background-color: var(--color-success);
 }
 
 .timerHeader {
@@ -18,7 +33,6 @@
 .timerDisplay {
   font-size: var(--font-size-lg);
   font-weight: 300;
-  line-height: 1;
   padding: var(--spacing-lg) 0;
 }
 
@@ -37,7 +51,7 @@
 
 .controlButton {
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid var(--color-border);
   color: var(--color-white);
   padding: var(--spacing-xs) 0;
   border-radius: var(--border-radius-sm);
@@ -47,28 +61,11 @@
   transition: all 0.2s;
 }
 
-.controlButton:hover {
+.controlButton:hover:not(.disabled) {
   border-color: var(--color-white);
 }
 
-.controlButton.disabled {
+.disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.controlButton.disabled:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.timerContainer.work {
-  background-color: var(--color-primary);
-}
-
-.timerContainer.break {
-  background-color: var(--color-success);
-}
-
-.timerContainer.longBreak {
-  background-color: var(--color-info);
 } 

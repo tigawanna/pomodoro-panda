@@ -8,8 +8,8 @@ export type TimerType = typeof TIMER_TYPES[keyof typeof TIMER_TYPES];
 
 export const DEFAULT_TIMER_SETTINGS = {
   workDuration: 0.1 * 60,  // 25 minutes
-  breakDuration: 5 * 60,  // 5 minutes
-  longBreakDuration: 15 * 60,  // 15 minutes
+  breakDuration: 0.05 * 60,  // 5 minutes
+  longBreakDuration: 0.25 * 60,  // 15 minutes
   sessionsUntilLongBreak: 4
 } as const;
 
@@ -23,4 +23,17 @@ export const COMPLETION_MESSAGES = {
   [TIMER_TYPES.WORK]: "Work session completed!",
   [TIMER_TYPES.BREAK]: "Break session completed!",
   [TIMER_TYPES.LONG_BREAK]: "Long break session completed!"
+} as const;
+
+export const ERROR_MESSAGES = {
+  TASK_LOAD_FAILED: "Failed to load tasks",
+  TASK_UPDATE_FAILED: "Failed to update task",
+  TASK_COMPLETE_FAILED: "Failed to complete task"
+} as const;
+
+export const TIMER_TITLES = {
+  [TIMER_TYPES.WORK]: (session: number) => `Pomodoro ${session}`,
+  [TIMER_TYPES.BREAK]: "Short Break",
+  [TIMER_TYPES.LONG_BREAK]: "Long Break",
+  DEFAULT: "Timer"
 } as const;

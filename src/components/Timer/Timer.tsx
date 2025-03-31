@@ -10,7 +10,12 @@ import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
 import { tasksDB } from '../../utils/database';
-import { TIMER_TYPES, COMPLETION_MESSAGES } from '../../constants/timerConstants';
+import {
+    TIMER_TYPES,
+    COMPLETION_MESSAGES,
+    ERROR_MESSAGES,
+    TIMER_TITLES,
+} from '../../constants/timerConstants';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -18,16 +23,25 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
 
-    const { timeLeft, start, pause, reset, timerType, sessionsCompleted, hasStarted, switchTimer, settings } =
-        useTimer({
-            onComplete: async (type) => {
-                if (type === TIMER_TYPES.WORK) {
-                    await handleDone();
-                }
-                showNotification(type);
-                setNotification(COMPLETION_MESSAGES[type]);
-            },
-        });
+    const {
+        timeLeft,
+        start,
+        pause,
+        reset,
+        timerType,
+        sessionsCompleted,
+        hasStarted,
+        switchTimer,
+        settings,
+    } = useTimer({
+        onComplete: async (type) => {
+            if (type === TIMER_TYPES.WORK) {
+                await handleDone();
+            }
+            showNotification(type);
+            setNotification(COMPLETION_MESSAGES[type]);
+        },
+    });
 
     const canStartWorkTimer = selectedTask !== null;
 
@@ -57,15 +71,12 @@ export const Timer: React.FC<TimerProps> = ({
 
     const handleDone = async () => {
         if (!selectedTask) return;
-        const message = `${
-            timerType.charAt(0).toUpperCase() + timerType.slice(1)
-        } session completed!`;
 
         const completedTask = {
             ...selectedTask,
             id: `completed-${selectedTask.id}-${Date.now()}`,
             endTime: Date.now(),
-            duration: settings.workDuration * 1000, // Using settings instead of hardcoded value
+            duration: settings.workDuration * 1000,
             completed: true,
             pomodoros: 1,
         };
@@ -79,11 +90,11 @@ export const Timer: React.FC<TimerProps> = ({
             await tasksDB.completeOnePomodoro(selectedTask.id, completedTask);
             console.log('Pomodoro completed successfully');
             await onTaskComplete();
-            showInAppNotification(message);
+            showInAppNotification(COMPLETION_MESSAGES[timerType]);
             showNotification(timerType);
         } catch (error) {
             console.error('Failed to complete task:', error);
-            showInAppNotification('Failed to complete task');
+            showInAppNotification(ERROR_MESSAGES.TASK_COMPLETE_FAILED);
         }
     };
 
@@ -93,16 +104,8 @@ export const Timer: React.FC<TimerProps> = ({
 
     const getTimerTitle = () => {
         const session = Math.floor(sessionsCompleted / 2) + 1;
-        switch (timerType) {
-            case TIMER_TYPES.WORK:
-                return `Pomodoro ${session}`;
-            case TIMER_TYPES.BREAK:
-                return 'Short Break';
-            case TIMER_TYPES.LONG_BREAK:
-                return 'Long Break';
-            default:
-                return 'Timer';
-        }
+        const title = TIMER_TITLES[timerType];
+        return typeof title === 'function' ? title(session) : title;
     };
 
     return (
