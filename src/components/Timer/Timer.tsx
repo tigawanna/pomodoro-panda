@@ -10,7 +10,7 @@ import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
 import { tasksDB } from '../../utils/database';
-import { TIMER_TYPES } from '../../constants/timerConstants';
+import { TIMER_TYPES, COMPLETION_MESSAGES } from '../../constants/timerConstants';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -25,10 +25,7 @@ export const Timer: React.FC<TimerProps> = ({
                     await handleDone();
                 }
                 showNotification(type);
-                const message = `${
-                    type.charAt(0).toUpperCase() + type.slice(1)
-                } session completed!`;
-                setNotification(message);
+                setNotification(COMPLETION_MESSAGES[type]);
             },
         });
 
