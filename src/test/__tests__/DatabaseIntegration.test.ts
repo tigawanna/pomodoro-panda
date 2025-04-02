@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import { tasksDB, initDB, TASKS_STORE, COMPLETED_TASKS_STORE } from '../../utils/database'; import type { Task } from '../../types';
 import { fail } from 'assert';
 import { v4 as uuidv4 } from 'uuid';
-
+import { DEFAULT_TIMER_SETTINGS } from '../../constants/timerConstants';
 describe('Database Integration', () => {
   // Clean up database after all tests
   afterAll(async () => {
@@ -689,7 +689,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime - 2000}`,
       completed: true,
       endTime: baseTime - 2000,
-      duration: 25 * 60 * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
       pomodoros: 1
     };
 
@@ -698,7 +698,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime - 1000}`,
       completed: true,
       endTime: baseTime - 1000,
-      duration: 25 * 60 * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
       pomodoros: 1
     };
 
@@ -707,7 +707,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime}`,
       completed: true,
       endTime: baseTime,
-      duration: 25 * 60 * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
       pomodoros: 1
     };
 
