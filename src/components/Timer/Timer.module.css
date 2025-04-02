@@ -33,7 +33,6 @@
 .timerDisplay {
   font-size: var(--font-size-lg);
   font-weight: 300;
-  padding: var(--spacing-lg) 0;
 }
 
 .taskName {
@@ -109,4 +108,37 @@
 .controlButton span {
   position: relative;
   z-index: 1;
+}
+
+/* Coming soon feature indicators */
+.comingSoon {
+  cursor: help;
+  position: relative;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.comingSoon:hover {
+  opacity: 1;
+}
+
+.comingSoon::after {
+  content: 'Coming soon! 🚀';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.comingSoon:hover::after {
+  opacity: 1;
 } 

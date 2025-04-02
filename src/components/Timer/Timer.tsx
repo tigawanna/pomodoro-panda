@@ -129,11 +129,10 @@ export const Timer: React.FC<TimerProps> = ({
             <div className={`${styles.timerContainer} ${styles[timerType]}`}>
                 <div className={styles.timerHeader}>
                     <div className={styles.headerLeft}>
-                        <span>⚙️</span>
-                        <span>📋</span>
+                        <span className={styles.comingSoon}>⚙️</span>
+                        <span className={styles.comingSoon}>📋</span>
                     </div>
                     <div>{getTimerTitle()}</div>
-                    <div>❌</div>
                 </div>
                 <div className={styles.timerDisplay}>
                     <TimerDisplay timeLeft={timeLeft} />
