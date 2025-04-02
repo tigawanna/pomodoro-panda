@@ -29,6 +29,7 @@ export interface TaskListProps {
   onDelete: (taskId: string) => void;
   onUpdatePomodoros: (taskId: string, count: number) => void;
   onEditTask: (taskId: string, category: string, description: string) => void;
+  onMarkAsDone: (taskId: string) => void; // Add this new prop
 }
 
 export interface SortableTaskItemProps {
@@ -38,6 +39,7 @@ export interface SortableTaskItemProps {
   onDelete: (taskId: string) => void;
   onUpdatePomodoros: (taskId: string, count: number) => void;
   onEditTask: (taskId: string, category: string, description: string) => void;
+  onMarkAsDone: (taskId: string) => void;
   className?: string;
 }
 
@@ -47,6 +49,7 @@ export interface TaskMenuProps {
   onAddPomodoro: () => void;
   onRemovePomodoro: () => void;
   onEdit: () => void;
+  onMarkAsDone: () => void;
   pomodoroCount: number;
 }
 

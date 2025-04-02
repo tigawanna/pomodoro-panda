@@ -31,7 +31,8 @@ export const TaskList: React.FC<TaskListProps> = ({
   onReorder,
   onDelete,
   onUpdatePomodoros,
-  onEditTask
+  onEditTask,
+  onMarkAsDone, // Add this new prop
 }) => {
   const { timeLeft, isRunning, startTime } = useTimerContext();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -98,6 +99,7 @@ export const TaskList: React.FC<TaskListProps> = ({
               onDelete={onDelete}
               onUpdatePomodoros={onUpdatePomodoros}
               onEditTask={onEditTask}
+              onMarkAsDone={onMarkAsDone} // Add this prop
               className={task.id === activeId ? styles.dragging : ''}
               estimatedCompletion={calculateEstimatedCompletion(
                 [task],
@@ -126,7 +128,7 @@ export const TaskList: React.FC<TaskListProps> = ({
                 0,
                 activeTask.id === activeTaskId ? timeLeft : null,
                 isRunning,
-                activeTask.id,
+                activeTaskId,
                 startTime
               )).toLocaleTimeString([], { 
                 hour: '2-digit', 

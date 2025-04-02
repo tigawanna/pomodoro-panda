@@ -14,6 +14,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   onDelete,
   onUpdatePomodoros,
   onEditTask,
+  onMarkAsDone,
   className,
 }) => {
   const { timeLeft, isRunning, startTime } = useTimerContext();
@@ -72,6 +73,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   const handleRemovePomodoro = () =>
     onUpdatePomodoros(task.id, Math.max(0, (task.pomodoros || 0) - 1));
   const handleEdit = () => setIsEditing(true);
+  const handleMarkAsDone = () => onMarkAsDone(task.id);
 
   const handleEditSubmit = (category: string, description: string) => {
     onEditTask(task.id, category, description);
@@ -143,6 +145,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
             onAddPomodoro={handleAddPomodoro}
             onRemovePomodoro={handleRemovePomodoro}
             onEdit={handleEdit}
+            onMarkAsDone={handleMarkAsDone}
             pomodoroCount={task.pomodoros || 0}
           />
         )}

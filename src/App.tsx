@@ -4,7 +4,7 @@ import { TaskInput, TaskList } from './components/Tasks';
 import { Timer } from './components/Timer';
 import { Notification } from './components/Notification';
 import { Task, NotificationState } from './types';
-import { TimerType } from './constants/timerConstants';
+import { TimerType, DEFAULT_TIMER_SETTINGS } from './constants/timerConstants';
 import { tasksDB } from './utils/database';
 import { v4 as uuidv4 } from 'uuid';
 import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
@@ -213,6 +213,50 @@ function App() {
     }
   };
 
+  const handleMarkAsDone = async (taskId: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) {
+        setNotification({
+          message: 'Task not found',
+          type: 'error'
+        });
+        return;
+      }
+
+      // Create a completed task object
+      const completedTask = {
+        ...task,
+        id: `completed-${task.id}-${Date.now()}`,
+        endTime: Date.now(),
+        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000, // Use constant instead of hardcoded value
+        completed: true
+      };
+
+      console.log('Marking task as done:', {
+        taskId,
+        completedTask
+      });
+
+      // Add to completed tasks and remove from active tasks
+      await tasksDB.completeOnePomodoro(taskId, completedTask);
+      
+      // Refresh the task lists
+      await handleTaskComplete();
+      
+      setNotification({
+        message: 'Task marked as done',
+        type: 'success'
+      });
+    } catch (error) {
+      console.error('Failed to mark task as done:', error);
+      setNotification({
+        message: 'Failed to mark task as done',
+        type: 'error'
+      });
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
@@ -231,6 +275,7 @@ function App() {
             onDelete={handleDeleteTask}
             onUpdatePomodoros={handleUpdatePomodoros}
             onEditTask={handleEditTask}
+            onMarkAsDone={handleMarkAsDone}
           />
           <CompletedTasksList 
             tasks={completedTasks} 
