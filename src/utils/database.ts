@@ -264,44 +264,23 @@ export const tasksDB = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE, COMPLETED_TASKS_STORE], "readwrite");
 
-      transaction.oncomplete = () => {
-        console.log('Transaction completed for task:', taskId);
-        resolve();
-      };
-
-      transaction.onerror = () => {
-        console.error('Error in pomodoro completion transaction:', transaction.error);
-        reject(transaction.error);
-      };
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
 
       const tasksStore = transaction.objectStore(TASKS_STORE);
       const completedStore = transaction.objectStore(COMPLETED_TASKS_STORE);
 
-      // First check if ID already exists in completed store
       const checkRequest = completedStore.get(completedPomodoro.id);
       
       checkRequest.onsuccess = () => {
-        console.log('Checking for existing completed task:', {
-          taskId,
-          exists: !!checkRequest.result
-        });
-
         if (checkRequest.result) {
-          console.error('Duplicate task ID detected when completing pomodoro:', completedPomodoro.id);
-          // Modify the ID to make it unique
           completedPomodoro.id = `${completedPomodoro.id}_${Date.now()}`;
         }
 
-        // Get original task
         const getRequest = tasksStore.get(taskId);
 
         getRequest.onsuccess = () => {
           const originalTask = getRequest.result;
-          console.log('Retrieved original task:', {
-            taskId,
-            found: !!originalTask,
-            task: originalTask
-          });
 
           if (!originalTask) {
             transaction.abort();
@@ -310,10 +289,8 @@ export const tasksDB = {
           }
           const remainingPomodoros = (originalTask.pomodoros || 0) - 1;
           
-          // Add to completed store
           completedStore.add(completedPomodoro);
           
-          // Update or delete original task
           if (remainingPomodoros >= 1) {
             tasksStore.put({
               ...originalTask,

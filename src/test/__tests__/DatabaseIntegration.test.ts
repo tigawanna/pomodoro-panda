@@ -140,34 +140,17 @@ describe('Database Integration', () => {
         pomodoros: 1 
       }
     ];
-    // Add tasks to tasks store
+    
     await tasksDB.updateAll(tasks);
-
-    console.log('Initial tasks:', tasks.map(t => (t)));
-
-    // confirm tasks are in tasks store
     const tasksFromStore = await tasksDB.getAll();
     expect(tasksFromStore.length).toBe(tasks.length);
     expect(tasksFromStore.every(t => tasks.some(t2 => t2.id === t.id))).toBe(true);
-    console.log('Tasks from store:', tasksFromStore.map(t => (t)));
 
-    // Add tasks to completed store
     for (const task of tasksFromStore) {
-      console.log('Attempting to complete task:', {
-        taskId: task.id,
-        completedPomodoro: {
-          id: task.id,
-          endTime: task.endTime,
-          order: task.order
-        }
-      });
       await tasksDB.completeOnePomodoro(task.id, task);
     }
 
-    // Verify order in completed tasks
     const completedTasks = await tasksDB.getCompletedTasks();
-    console.log('Retrieved completed tasks:', completedTasks.map(t => (t)));
-
     expect(completedTasks.length).toBe(2);
     expect(completedTasks[0].endTime).toBe(completedTasks[1].endTime);
     if (completedTasks[0].order && completedTasks[1].order) {
