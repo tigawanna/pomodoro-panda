@@ -28,8 +28,14 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       );
     }
     
+    const isResumeDisabled = isPaused && disableWorkTimer && timerType === TIMER_TYPES.WORK;
+    
     return (
-      <button className={styles.controlButton} onClick={isPaused ? onResume : onPause}>
+      <button 
+        className={`${styles.controlButton} ${isResumeDisabled ? styles.disabled : ''}`} 
+        onClick={isPaused ? onResume : onPause}
+        disabled={isResumeDisabled}
+      >
         <span>{isPaused ? 'RESUME' : 'PAUSE'}</span>
       </button>
     );
@@ -52,10 +58,13 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       );
     }
 
+    const isDoneDisabled = isPaused && disableWorkTimer && timerType === TIMER_TYPES.WORK;
+
     return (
       <button 
-        className={styles.controlButton} 
+        className={`${styles.controlButton} ${isDoneDisabled ? styles.disabled : ''}`} 
         onClick={isPaused ? onDone : onStop}
+        disabled={isDoneDisabled}
       >
         <span>{isPaused ? 'DONE' : 'STOP'}</span>
       </button>

@@ -97,6 +97,11 @@
 /* Keep focus state for accessibility */
 .controlButton:focus:not(.disabled) {
   outline: none;
+}
+
+/* Only show focus styles for keyboard navigation */
+.controlButton:focus-visible:not(.disabled) {
+  outline: none;
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
 }
 

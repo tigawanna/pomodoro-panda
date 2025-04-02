@@ -73,11 +73,16 @@ export const Timer: React.FC<TimerProps> = ({
     const handleDone = async () => {
         if (!selectedTask) return;
 
+        // Calculate actual duration based on time spent
+        const totalDurationMs = settings.workDuration * 1000; // Full duration in ms
+        const timeLeftMs = timeLeft * 1000; // Remaining time in ms
+        const actualDurationMs = hasStarted ? totalDurationMs - timeLeftMs : totalDurationMs;
+
         const completedTask = {
             ...selectedTask,
             id: `completed-${selectedTask.id}-${Date.now()}`,
             endTime: Date.now(),
-            duration: settings.workDuration * 1000,
+            duration: actualDurationMs,
             completed: true,
             pomodoros: 1,
         };
@@ -85,6 +90,8 @@ export const Timer: React.FC<TimerProps> = ({
         console.log('Attempting to complete pomodoro:', {
             taskId: selectedTask.id,
             completedTask,
+            actualDuration: `${Math.round(actualDurationMs / 60000)}m`,
+            timeSpent: hasStarted ? `${Math.round((totalDurationMs - timeLeftMs) / 60000)}m` : 'none',
         });
 
         try {
