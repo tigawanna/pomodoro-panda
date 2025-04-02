@@ -3,6 +3,9 @@
     gap: var(--spacing-sm);
     margin: var(--spacing-sm) 0;
     align-items: center;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .categoryInput {
@@ -39,6 +42,9 @@
     padding: var(--spacing-md);
     margin-top: var(--spacing-md);
     box-shadow: var(--shadow-sm);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .taskItem {

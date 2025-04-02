@@ -1,6 +1,6 @@
 .timerContainer {
   width: 100%;
-  max-width: 480px;
+  max-width: 800px;
   margin: 0 auto;
   padding: var(--spacing-md);
   border-radius: var(--border-radius-sm);
