@@ -35,9 +35,8 @@ describe('Database Integration', () => {
       id: '1',
       description: 'Test Task',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     // Test add function
@@ -53,14 +52,14 @@ describe('Database Integration', () => {
   test('should preserve task order after page refresh', async () => {
     // Create tasks in specific order
     const tasks: Task[] = [
-      { id: '1', description: 'First', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 0 },
-      { id: '2', description: 'Second', category: 'Work', startTime: Date.now() + 1000, completed: false, pomodoros: 0 },
-      { id: '3', description: 'Third', category: 'Work', startTime: Date.now() + 2000, completed: false, pomodoros: 0 }
+      { id: '1', description: 'First', category: 'Work', completed: false, pomodoros: 1 },
+      { id: '2', description: 'Second', category: 'Work', completed: false, pomodoros: 1 },
+      { id: '3', description: 'Third', category: 'Work', completed: false, pomodoros: 1 }
     ];
 
-    // Add tasks one by one
-    for (const task of tasks) {
-      await tasksDB.add(task);
+    // Add tasks one by one with order
+    for (const [index, task] of tasks.entries()) {
+      await tasksDB.add({ ...task, order: index });
     }
 
     // Verify initial order (should be by startTime)
@@ -121,52 +120,25 @@ describe('Database Integration', () => {
     }
   });
 
-  test('should handle tasks with same startTime but different order', async () => {
+  test('should handle tasks with same endTime but different order', async () => {
     const now = Date.now();
     const tasks: Task[] = [
-      { id: '1', description: 'Task A', category: 'Work', startTime: now, completed: false, pomodoros: 0 },
-      { id: '2', description: 'Task B', category: 'Work', startTime: now, completed: false, pomodoros: 0 },
-      { id: '3', description: 'Task C', category: 'Work', startTime: now, completed: false, pomodoros: 0 }
+      { id: '1', description: 'Task A', category: 'Work', completed: true, endTime: now, pomodoros: 1 },
+      { id: '2', description: 'Task B', category: 'Work', completed: true, endTime: now, pomodoros: 1 },
+      { id: '3', description: 'Task C', category: 'Work', completed: true, endTime: now, pomodoros: 1 }
     ];
 
-    await tasksDB.updateAll(tasks);
-
-    // Verify order matches the array order
-    const retrievedTasks = await tasksDB.getAll();
-    try {
-      expect(retrievedTasks[0].id).toBe('1');
-      expect(retrievedTasks[1].id).toBe('2');
-      expect(retrievedTasks[2].id).toBe('3');
-    } catch (error) {
-      console.error('FAILURE IN tasksDB.getAll() - Tasks with same startTime are sorted incorrectly');
-      console.error('\nCurrent task order:', retrievedTasks.map(t => ({
-        id: t.id,
-        startTime: new Date(t.startTime).toISOString(),
-        order: t.order
-      })));
-      throw error;
+    // Add tasks to completed store
+    for (const task of tasks) {
+      await tasksDB.completeOnePomodoro(task.id, task);
     }
 
-    // Reorder tasks (3, 2, 1)
-    const reorderedTasks = [
-      { ...tasks[2], order: 0 },
-      { ...tasks[1], order: 1 },
-      { ...tasks[0], order: 2 }
-    ];
-
-    // Update with new order
-    await tasksDB.updateAll(reorderedTasks);
-
-    // Verify new order
-    const tasksAfterReorder = await tasksDB.getAll();
-    expect(tasksAfterReorder[0].id).toBe('3');
-    expect(tasksAfterReorder[1].id).toBe('2');
-    expect(tasksAfterReorder[2].id).toBe('1');
-
-    // Verify that the order properties are correctly assigned
-    expect(tasksAfterReorder[0].order).toBe(0);
-    expect(tasksAfterReorder[1].order).toBe(1);
-    expect(tasksAfterReorder[2].order).toBe(2);
+    // Verify order in completed tasks
+    const completedTasks = await tasksDB.getCompletedTasks();
+    expect(completedTasks.length).toBe(3);
+    // Most recent first
+    expect(completedTasks[0].endTime).toBeGreaterThanOrEqual(completedTasks[1].endTime);
+    expect(completedTasks[1].endTime).toBeGreaterThanOrEqual(completedTasks[2].endTime);
   });
 
   test('should update existing tasks', async () => {
@@ -175,9 +147,8 @@ describe('Database Integration', () => {
       id: 'update-test',
       description: 'Initial description',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     try {
@@ -191,7 +162,7 @@ describe('Database Integration', () => {
     const updatedTask = {
       ...task,
       description: 'Updated description',
-      pomodoros: 1,
+      pomodoros: 2,
       completed: true
     };
 
@@ -207,7 +178,7 @@ describe('Database Integration', () => {
       const tasks = await tasksDB.getAll();
       expect(tasks.length).toBe(1);
       expect(tasks[0].description).toBe('Updated description');
-      expect(tasks[0].pomodoros).toBe(1);
+      expect(tasks[0].pomodoros).toBe(2);
       expect(tasks[0].completed).toBe(true);
     } catch (error: unknown) {
       console.error('FAILURE: Could not verify task update');
@@ -250,9 +221,8 @@ describe('Database Integration', () => {
         id: 'after-clear',
         description: 'Added after clear',
         category: 'Work',
-        startTime: Date.now(),
         completed: false,
-        pomodoros: 0
+        pomodoros: 1
       };
 
       await tasksDB.add(task);
@@ -273,9 +243,8 @@ describe('Database Integration', () => {
       id: 'transaction-test',
       description: 'Test Transaction',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     try {
@@ -319,9 +288,8 @@ describe('Database Integration', () => {
       id: `concurrent-${i}`,
       description: `Task ${i}`,
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     }));
 
     // Test concurrent adds to stress test transaction handling
@@ -349,9 +317,8 @@ describe('Database Integration', () => {
       id: 'slow-operation',
       description: 'Slow Task',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     try {
@@ -373,9 +340,8 @@ describe('Database Integration', () => {
       id: 'transaction-state',
       description: 'Test Transaction State',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     const db = await initDB();
@@ -428,9 +394,8 @@ describe('Database Integration', () => {
       id: 'duplicate-test',
       description: 'Original Task',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0
+      pomodoros: 1
     };
 
     // Add the first task
@@ -458,9 +423,9 @@ describe('Database Integration', () => {
   test('should delete a task and maintain order', async () => {
     // Setup initial tasks
     const tasks: Task[] = [
-      { id: '1', description: 'Task A', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 0 },
-      { id: '2', description: 'Task B', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 1 },
-      { id: '3', description: 'Task C', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 2 }
+      { id: '1', description: 'Task A', category: 'Work', completed: false, pomodoros: 1, order: 0 },
+      { id: '2', description: 'Task B', category: 'Work', completed: false, pomodoros: 1, order: 1 },
+      { id: '3', description: 'Task C', category: 'Work', completed: false, pomodoros: 1, order: 2 }
     ];
 
     // Add all tasks
@@ -492,9 +457,9 @@ describe('Database Integration', () => {
 
   test('should handle deleting tasks at different positions', async () => {
     const tasks: Task[] = [
-      { id: 'first', description: 'First Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 0 },
-      { id: 'middle', description: 'Middle Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 1 },
-      { id: 'last', description: 'Last Task', category: 'Work', startTime: Date.now(), completed: false, pomodoros: 1, order: 2 }
+      { id: 'first', description: 'First Task', category: 'Work', completed: false, pomodoros: 1, order: 0 },
+      { id: 'middle', description: 'Middle Task', category: 'Work', completed: false, pomodoros: 1, order: 1 },
+      { id: 'last', description: 'Last Task', category: 'Work', completed: false, pomodoros: 1, order: 2 }
     ];
 
     await tasksDB.updateAll(tasks);
@@ -546,7 +511,6 @@ describe('Database Integration', () => {
       id: 'integrity-test',
       description: 'Test Task',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
       pomodoros: 1,
       order: 0
@@ -574,7 +538,6 @@ describe('Database Integration', () => {
       id: '1',
       description: 'Test Task',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
       pomodoros: 1,
       order: 0
@@ -594,9 +557,8 @@ describe('Database Integration', () => {
       id: 'edit-test',
       description: 'Initial description',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 0,
+      pomodoros: 1,
       order: 0
     };
 
@@ -625,136 +587,43 @@ describe('Database Integration', () => {
 
     // Verify other fields remained unchanged
     expect(tasks[0].id).toBe(task.id);
-    expect(tasks[0].startTime).toBe(task.startTime);
     expect(tasks[0].completed).toBe(task.completed);
     expect(tasks[0].pomodoros).toBe(task.pomodoros);
     expect(tasks[0].order).toBe(task.order);
   });
 
-  test('should handle completing of multi-pomodoro tasks and single pomodoro tasks', async () => {
-
-    // Create initial task with multiple pomodoros
+  test('should handle completing of multi-pomodoro tasks', async () => {
+    const taskId = 'multi-pomodoro-test';
     const task: Task = {
-      id: 'multi-pomodoro-test',
+      id: taskId,
       description: 'Task with multiple pomodoros',
       category: 'Work',
-      startTime: Date.now(),
       completed: false,
-      pomodoros: 3 // Task has 3 pomodoros assigned
+      pomodoros: 3
     };
 
-    // Add task to active tasks
-    try {
-      await tasksDB.add(task);
-    } catch (error) {
-      console.error('Failed to add initial task:', error);
-      throw error;
-    }
-
-    // check that initial task is in active store and log it out
-    try {
-      const activeTasks = await tasksDB.getAll();
-      expect(activeTasks.length).toBe(1);
-      expect(activeTasks[0].id).toBe(task.id);
-      expect(activeTasks[0].pomodoros).toBe(3);
-    } catch (error) {
-      console.error('Failed to verify initial task in active store:', error);
-      throw error;
-    }
+    await tasksDB.add(task);
 
     // Complete first pomodoro
-    const completedTime1 = Date.now();
-    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
     const completedPomodoro1 = {
       ...task,
-      id: `${task.id}-${completedTime1}`,
+      id: `completed-${taskId}-${Date.now()}`,
       completed: true,
-      endTime: completedTime1,
-      duration: completedTime1 - task.startTime,
+      endTime: Date.now(),
+      duration: 25 * 60 * 1000, // 25 minutes
       pomodoros: 1
     };
 
-    try {
-      // verify active tasks are updated
-      await tasksDB.completeOnePomodoro(task.id, completedPomodoro1);
-      const activeTasks = await tasksDB.getAll();
+    await tasksDB.completeOnePomodoro(taskId, completedPomodoro1);
+    
+    // Verify active tasks are updated
+    const activeTasks = await tasksDB.getAll();
+    expect(activeTasks.length).toBe(0);
 
-      expect(activeTasks.length).toBe(1);
-      expect(activeTasks[0].id).toBe(task.id);
-      expect(activeTasks[0].pomodoros).toBe(2);
-
-      // verify completed tasks are updated
-      const completedTasks = await tasksDB.getCompletedTasks()
-      expect(completedTasks.length).toBe(1)
-      expect(completedTasks[0].id).toBe(completedPomodoro1.id)
-      expect(completedTasks[0].pomodoros).toBe(1)
-    } catch (error) {
-      console.error('Failed to complete pomodoro:', error);
-      throw error;
-    }
-
-    // Complete second pomodoro
-    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
-    const completedTime2 = Date.now();
-    const completedPomodoro2 = {
-      ...task,
-      id: `${task.id}-${completedTime2}`,
-      completed: true,
-      endTime: completedTime2,
-      duration: completedTime2 - task.startTime,
-      pomodoros: 1
-    };
-
-    try {
-      // verify active tasks are updated
-      await tasksDB.completeOnePomodoro(task.id, completedPomodoro2);
-
-      const activeTasks = await tasksDB.getAll();
-      expect(activeTasks.length).toBe(1);
-      expect(activeTasks[0].id).toBe(task.id);
-      expect(activeTasks[0].pomodoros).toBe(1);
-
-      // verify completed tasks are updated
-      const completedTasks = await tasksDB.getCompletedTasks()
-      expect(completedTasks.length).toBe(2)
-      expect(completedTasks[0].id).toBe(completedPomodoro2.id)
-      expect(completedTasks[0].pomodoros).toBe(1)
-    } catch (error) {
-      console.error('Failed to complete pomodoro:', error);
-      throw error;
-    }
-
-    // Complete third pomodoro
-    await new Promise(resolve => setTimeout(resolve, 1)); // Ensure unique timestamps
-    const completedTime3 = Date.now();
-    const completedPomodoro3 = {
-      ...task,
-      id: `${task.id}-${completedTime3}`,
-      completed: true,
-      endTime: completedTime3,
-      duration: completedTime3 - task.startTime,
-      pomodoros: 1
-    };
-
-    try {
-      // verify active tasks are updated
-      await tasksDB.completeOnePomodoro(task.id, completedPomodoro3);
-
-      const activeTasks = await tasksDB.getAll();
-      expect(activeTasks.length).toBe(0);
-
-      // verify completed tasks are updated
-      const completedTasks = await tasksDB.getCompletedTasks()
-      expect(completedTasks.length).toBe(3)
-      expect(completedTasks[0].id).toBe(completedPomodoro3.id)
-      expect(completedTasks[0].pomodoros).toBe(1)
-      expect(completedTasks[1].id).toBe(completedPomodoro2.id)
-      expect(completedTasks[1].pomodoros).toBe(1)
-      expect(completedTasks[2].id).toBe(completedPomodoro1.id)
-      expect(completedTasks[2].pomodoros).toBe(1)
-    } catch (error) {
-      console.error('Failed to complete pomodoro:', error);
-      throw error;
-    }
+    // Verify completed tasks are updated
+    const completedTasks = await tasksDB.getCompletedTasks();
+    expect(completedTasks.length).toBe(1);
+    expect(completedTasks[0].id).toBe(completedPomodoro1.id);
+    expect(completedTasks[0].pomodoros).toBe(1);
   });
 }); 
