@@ -58,14 +58,50 @@
   cursor: pointer;
   font-size: var(--font-size-xs);
   width: 140px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.controlButton:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: var(--border-radius-sm);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .controlButton:hover:not(.disabled) {
   border-color: var(--color-white);
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.controlButton:hover:not(.disabled):before {
+  opacity: 1;
+}
+
+.controlButton:active:not(.disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Keep focus state for accessibility */
+.controlButton:focus:not(.disabled) {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+/* Ensure text stays above the backdrop */
+.controlButton span {
+  position: relative;
+  z-index: 1;
 } 
