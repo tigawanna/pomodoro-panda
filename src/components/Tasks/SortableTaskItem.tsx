@@ -128,7 +128,14 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         className={styles.taskActions}
         ref={menuRef}
       >
-        <span className={styles.taskCount}>{task.pomodoros || 0}</span>
+        <button
+          className={styles.taskCount}
+          onClick={handleAddPomodoro}
+          aria-label={`Add pomodoro to ${task.description} (currently ${task.pomodoros || 0})`}
+          title="Click to add a pomodoro"
+        >
+          {task.pomodoros || 1}
+        </button>
         <button
           className={styles.moreButton}
           onClick={handleMenuToggle}

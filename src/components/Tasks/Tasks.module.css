@@ -164,8 +164,8 @@
 }
 
 .taskCount {
-    width: 24px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     border-radius: var(--border-radius-circle);
     background: var(--color-background);
     display: flex;
@@ -173,6 +173,38 @@
     justify-content: center;
     font-size: var(--font-size-xs);
     color: var(--color-text-light);
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.taskCount:hover {
+    background-color: var(--color-primary-background);
+    color: var(--color-text);
+    transform: scale(1.05);
+}
+
+.taskCount:active {
+    transform: scale(0.95);
+}
+
+/* Optional: Add a subtle plus indicator on hover */
+.taskCount:hover::after {
+    content: '+';
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    font-size: 10px;
+    background-color: var(--color-primary);
+    color: white;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
 }
 
 .moreButton {
