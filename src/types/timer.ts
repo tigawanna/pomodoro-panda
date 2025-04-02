@@ -1,6 +1,13 @@
-import { Task } from '.';
-import { TimerSettings } from '.';
-import { TimerType } from '../constants/timerConstants';
+import type { TimerType } from '../constants/timerConstants';
+import type { Task } from './task';
+
+// Timer settings
+export interface TimerSettings {
+  workDuration: number;
+  breakDuration: number;
+  longBreakDuration: number;
+  sessionsUntilLongBreak: number;
+}
 
 // Core timer state interface used across the application
 export interface TimerState {
@@ -15,14 +22,40 @@ export interface TimerState {
 }
 
 // Context-specific interface that extends the base state
-export interface TimerContextState extends Omit<TimerState, 'sessionsCompleted'> {
-  updateTimerState: (state: Partial<TimerContextState>) => void;
+
+// Define action types
+export type TimerAction =
+  | { type: 'UPDATE_TIMER_STATE'; payload: Partial<TimerState> }
+  | { type: 'START_TIMER'; payload?: { startTime?: number; expectedEndTime?: number } }
+  | { type: 'PAUSE_TIMER' }
+  | { type: 'RESET_TIMER' }
+  | { type: 'SWITCH_TIMER'; payload: { timerType: TimerType; timeLeft: number } }
+  | { type: 'UPDATE_TIME_LEFT'; payload: { timeLeft: number } };
+
+// Define context type
+
+export interface TimerContextType {
+  state: TimerState;
+  dispatch: React.Dispatch<TimerAction>;
+  startTimer: () => void;
+  pauseTimer: () => void;
+  resetTimer: () => void;
+  switchTimer: () => void;
+  updateTimerState: (newState: Partial<TimerState>) => void;
+  setOnComplete: (callback: (timerType: string) => void) => void;
+  settings: TimerSettings;
 }
+export interface TimerContextState extends Omit<TimerState, 'sessionsCompleted'> {
+  updateTimerState: (state: TimerStateUpdate) => void;
+}
+
+// Type for partial updates to timer state
+export type TimerStateUpdate = Partial<Omit<TimerContextState, 'updateTimerState'>>;
 
 // Reference type for tracking previous state
 export type TimerStateRef = Omit<TimerState, 'sessionsCompleted'>;
 
-// Props for timer-related components
+// Component props
 export interface TimerProps {
   selectedTask: Task | null;
   onTaskComplete: () => Promise<void>;
@@ -30,6 +63,19 @@ export interface TimerProps {
 
 export interface TimerDisplayProps {
   timeLeft: number;
+}
+
+export interface TimerControlsProps {
+  isPaused: boolean;
+  hasStarted: boolean;
+  onStart: () => void;
+  onResume: () => void;
+  onPause: () => void;
+  onStop: () => void;
+  onDone: () => void;
+  disableWorkTimer?: boolean;
+  timerType: TimerType;
+  onSkip: () => void;
 }
 
 // Hook props
@@ -43,6 +89,3 @@ export interface TimeEstimate {
   completionTime: number;
   remainingDuration: number;
 }
-
-// Add this export to your types/timer.ts file
-export type TimerStateUpdate = Partial<Omit<TimerContextState, 'updateTimerState'>>;

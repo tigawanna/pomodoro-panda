@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     COMPLETION_MESSAGES,
     ERROR_MESSAGES,
@@ -6,7 +6,7 @@ import {
     TIMER_TYPES,
 } from '../../constants/timerConstants';
 import { useTimer } from '../../hooks/useTimer';
-import type { TimerProps, TimerStateRef, TimerStateUpdate } from '../../types/timer';
+import type { TimerProps } from '../../types/timer';
 import { tasksDB } from '../../utils/database';
 import {
     initializeNotifications,
@@ -16,72 +16,33 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
-import useTimerContext from '../../hooks/useTimerContext';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
     onTaskComplete,
-  }) => {
+}) => {
     const [notification, setNotification] = useState<string | null>(null);
-    const { updateTimerState } = useTimerContext();
-
-    const previousState = useRef<TimerStateRef | null>(null);
-
+    
     const {
-      timeLeft,
-      isRunning,
-      hasStarted,
-      timerType,
-      sessionsCompleted,
-      start,
-      pause,
-      reset,
-      switchTimer,
-      settings,
-      startTime,
-      expectedEndTime
+        timeLeft,
+        isRunning,
+        hasStarted,
+        timerType,
+        sessionsCompleted,
+        start,
+        pause,
+        reset,
+        switchTimer,
+        settings,
     } = useTimer({
-      onComplete: async (type) => {
-        if (type === TIMER_TYPES.WORK) {
-          await onTaskComplete();
-          showNotification(type);
-          setNotification(COMPLETION_MESSAGES[type]);
-        }
-      },
+        onComplete: async (type) => {
+            if (type === TIMER_TYPES.WORK) {
+                await onTaskComplete();
+                showNotification(type);
+                setNotification(COMPLETION_MESSAGES[type]);
+            }
+        },
     });
-
-    useEffect(() => {
-        const timerState: TimerStateRef = {
-          timeLeft,
-          isRunning,
-          hasStarted,
-          timerType,
-          activeTaskId: selectedTask?.id || null,
-          startTime: startTime.current,
-          expectedEndTime: expectedEndTime.current
-        };
-
-        const hasChanged = 
-          previousState.current?.timeLeft !== timeLeft ||
-          previousState.current?.isRunning !== isRunning ||
-          previousState.current?.hasStarted !== hasStarted ||
-          previousState.current?.timerType !== timerType ||
-          previousState.current?.activeTaskId !== (selectedTask?.id || null);
-
-        if (hasChanged) {
-          previousState.current = timerState;
-          updateTimerState(timerState as TimerStateUpdate);
-        }
-    }, [
-      timeLeft,
-      isRunning,
-      hasStarted,
-      timerType,
-      selectedTask?.id,
-      startTime,
-      expectedEndTime,
-      updateTimerState
-    ]);
 
     const canStartWorkTimer = selectedTask !== null;
 
@@ -115,7 +76,9 @@ export const Timer: React.FC<TimerProps> = ({
         // Calculate actual duration based on time spent
         const totalDurationMs = settings.workDuration * 1000; // Full duration in ms
         const timeLeftMs = timeLeft * 1000; // Remaining time in ms
-        const actualDurationMs = hasStarted ? totalDurationMs - timeLeftMs : totalDurationMs;
+        const actualDurationMs = hasStarted
+            ? totalDurationMs - timeLeftMs
+            : totalDurationMs;
 
         const completedTask = {
             ...selectedTask,
@@ -130,7 +93,9 @@ export const Timer: React.FC<TimerProps> = ({
             taskId: selectedTask.id,
             completedTask,
             actualDuration: `${Math.round(actualDurationMs / 60000)}m`,
-            timeSpent: hasStarted ? `${Math.round((totalDurationMs - timeLeftMs) / 60000)}m` : 'none',
+            timeSpent: hasStarted
+                ? `${Math.round((totalDurationMs - timeLeftMs) / 60000)}m`
+                : 'none',
         });
 
         try {
