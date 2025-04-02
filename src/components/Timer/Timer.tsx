@@ -1,6 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import {
+    COMPLETION_MESSAGES,
+    ERROR_MESSAGES,
+    TIMER_TITLES,
+    TIMER_TYPES,
+} from '../../constants/timerConstants';
 import { useTimer } from '../../hooks/useTimer';
-import { TimerProps } from '../../types';
+import type { TimerProps, TimerStateRef, TimerStateUpdate } from '../../types/timer';
+import { tasksDB } from '../../utils/database';
 import {
     initializeNotifications,
     showNotification,
@@ -9,40 +16,72 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
-import { tasksDB } from '../../utils/database';
-import {
-    TIMER_TYPES,
-    COMPLETION_MESSAGES,
-    ERROR_MESSAGES,
-    TIMER_TITLES,
-} from '../../constants/timerConstants';
+import useTimerContext from '../../hooks/useTimerContext';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
     onTaskComplete,
-}) => {
+  }) => {
     const [notification, setNotification] = useState<string | null>(null);
+    const { updateTimerState } = useTimerContext();
+
+    const previousState = useRef<TimerStateRef | null>(null);
 
     const {
-        timeLeft,
-        start,
-        pause,
-        reset,
-        timerType,
-        sessionsCompleted,
-        hasStarted,
-        isRunning,
-        switchTimer,
-        settings,
+      timeLeft,
+      isRunning,
+      hasStarted,
+      timerType,
+      sessionsCompleted,
+      start,
+      pause,
+      reset,
+      switchTimer,
+      settings,
+      startTime,
+      expectedEndTime
     } = useTimer({
-        onComplete: async (type) => {
-            if (type === TIMER_TYPES.WORK) {
-                await handleDone();
-                showNotification(type);
-                setNotification(COMPLETION_MESSAGES[type]);
-            }
-        },
+      onComplete: async (type) => {
+        if (type === TIMER_TYPES.WORK) {
+          await onTaskComplete();
+          showNotification(type);
+          setNotification(COMPLETION_MESSAGES[type]);
+        }
+      },
     });
+
+    useEffect(() => {
+        const timerState: TimerStateRef = {
+          timeLeft,
+          isRunning,
+          hasStarted,
+          timerType,
+          activeTaskId: selectedTask?.id || null,
+          startTime: startTime.current,
+          expectedEndTime: expectedEndTime.current
+        };
+
+        const hasChanged = 
+          previousState.current?.timeLeft !== timeLeft ||
+          previousState.current?.isRunning !== isRunning ||
+          previousState.current?.hasStarted !== hasStarted ||
+          previousState.current?.timerType !== timerType ||
+          previousState.current?.activeTaskId !== (selectedTask?.id || null);
+
+        if (hasChanged) {
+          previousState.current = timerState;
+          updateTimerState(timerState as TimerStateUpdate);
+        }
+    }, [
+      timeLeft,
+      isRunning,
+      hasStarted,
+      timerType,
+      selectedTask?.id,
+      startTime,
+      expectedEndTime,
+      updateTimerState
+    ]);
 
     const canStartWorkTimer = selectedTask !== null;
 

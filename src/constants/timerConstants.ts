@@ -37,3 +37,8 @@ export const TIMER_TITLES = {
   [TIMER_TYPES.LONG_BREAK]: "Long Break",
   DEFAULT: "Timer"
 } as const;
+
+// Add type guards for better type safety
+export function isTimerType(value: string): value is TimerType {
+  return Object.values(TIMER_TYPES).includes(value as TimerType);
+}

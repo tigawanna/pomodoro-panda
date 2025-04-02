@@ -1,7 +1,9 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import React, { useEffect, useRef, useState } from 'react';
+import useTimerContext from '../../hooks/useTimerContext';
 import { SortableTaskItemProps } from '../../types';
+import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 import { TaskInput } from './TaskInput';
 import { TaskMenu } from './TaskMenu';
 import styles from './Tasks.module.css';
@@ -9,12 +11,13 @@ import styles from './Tasks.module.css';
 export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   isActive,
-  estimatedCompletion,
   onDelete,
   onUpdatePomodoros,
   onEditTask,
   className,
 }) => {
+  const { timeLeft, isRunning, startTime } = useTimerContext();
+  const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -32,6 +35,24 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     transform: CSS.Transform.toString(transform),
     transition
   };
+
+  useEffect(() => {
+    const updateEstimatedTime = () => {
+      const newEstimatedTime = calculateEstimatedCompletion(
+        [task],
+        0,
+        isActive ? timeLeft : null,
+        isRunning,
+        isActive ? task.id : null,
+        startTime
+      );
+      setEstimatedTime(newEstimatedTime);
+    };
+
+    updateEstimatedTime();
+    const interval = setInterval(updateEstimatedTime, 1000);
+    return () => clearInterval(interval);
+  }, [task, isActive, timeLeft, isRunning, startTime]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -96,7 +117,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       <div className={styles.taskCategory}>{task.category}</div>
       <div className={styles.taskDescription}>{task.description}</div>
       <div className={styles.taskTime}>
-        {new Date(estimatedCompletion).toLocaleTimeString([], {
+        {new Date(estimatedTime).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
         })}

@@ -23,6 +23,7 @@ import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 import { CompletionIndicator } from './CompletionIndicator';
 import { TaskSummary } from './TaskSummary';
 import { EmptyState } from './EmptyState';
+import useTimerContext from '../../hooks/useTimerContext';
 
 export const TaskList: React.FC<TaskListProps> = ({
   tasks,
@@ -32,6 +33,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onUpdatePomodoros,
   onEditTask
 }) => {
+  const { timeLeft, isRunning, startTime } = useTimerContext();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
@@ -88,16 +90,23 @@ export const TaskList: React.FC<TaskListProps> = ({
           items={tasks.map(task => task.id)}
           strategy={verticalListSortingStrategy}
         >
-          {tasks.map((task, index) => (
+          {tasks.map((task) => (
             <SortableTaskItem
               key={task.id}
               task={task}
               isActive={task.id === activeTaskId}
-              estimatedCompletion={calculateEstimatedCompletion(tasks, index)}
               onDelete={onDelete}
               onUpdatePomodoros={onUpdatePomodoros}
               onEditTask={onEditTask}
-              className={`${index === 0 ? styles.isFirst : ''} ${index === tasks.length - 1 ? styles.isLast : ''}`}
+              className={task.id === activeId ? styles.dragging : ''}
+              estimatedCompletion={calculateEstimatedCompletion(
+                [task],
+                0,
+                task.id === activeTaskId ? timeLeft : null,
+                isRunning,
+                activeTaskId,
+                startTime
+              )}
             />
           ))}
         </SortableContext>
@@ -112,7 +121,14 @@ export const TaskList: React.FC<TaskListProps> = ({
             <div className={styles.taskCategory}>{activeTask.category}</div>
             <div className={styles.taskDescription}>{activeTask.description}</div>
             <div className={styles.taskTime}>
-              {new Date(calculateEstimatedCompletion([activeTask], 0)).toLocaleTimeString([], { 
+              {new Date(calculateEstimatedCompletion(
+                [activeTask],
+                0,
+                activeTask.id === activeTaskId ? timeLeft : null,
+                isRunning,
+                activeTask.id,
+                startTime
+              )).toLocaleTimeString([], { 
                 hour: '2-digit', 
                 minute: '2-digit' 
               })}

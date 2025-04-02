@@ -126,4 +126,14 @@ export interface TaskSummaryProps {
 export interface CompletedTasksListProps {
   tasks: Task[];
   onRepeatTask: (category: string, description: string, pomodoros?: number) => void;
+}
+
+export interface TimerStateRef {
+  timeLeft: number;
+  isRunning: boolean;
+  hasStarted: boolean;
+  timerType: TimerType;
+  activeTaskId: string | null;
+  startTime: number | null;
+  expectedEndTime: number | null;
 } 

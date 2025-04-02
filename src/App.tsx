@@ -8,6 +8,7 @@ import { TimerType } from './constants/timerConstants';
 import { tasksDB } from './utils/database';
 import { v4 as uuidv4 } from 'uuid';
 import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
+import { TimerProvider } from './contexts/TimerContext';
 
 export interface TimerControlsProps {
   isPaused: boolean;
@@ -216,25 +217,27 @@ function App() {
 
   return (
     <div className="app">
-      <main className="main-content">
-        <Timer 
-          selectedTask={activeTask} 
-          onTaskComplete={handleTaskComplete}
-        />
-        <TaskInput onAddTask={handleAddTask} />
-        <TaskList
-          tasks={tasks}
-          activeTaskId={activeTask?.id || null}
-          onReorder={handleReorderTasks}
-          onDelete={handleDeleteTask}
-          onUpdatePomodoros={handleUpdatePomodoros}
-          onEditTask={handleEditTask}
-        />
-        <CompletedTasksList 
-          tasks={completedTasks} 
-          onRepeatTask={handleRepeatTask}
-        />
-      </main>
+      <TimerProvider>
+        <main className="main-content">
+          <Timer 
+            selectedTask={activeTask} 
+            onTaskComplete={handleTaskComplete}
+          />
+          <TaskInput onAddTask={handleAddTask} />
+          <TaskList
+            tasks={tasks}
+            activeTaskId={activeTask?.id || null}
+            onReorder={handleReorderTasks}
+            onDelete={handleDeleteTask}
+            onUpdatePomodoros={handleUpdatePomodoros}
+            onEditTask={handleEditTask}
+          />
+          <CompletedTasksList 
+            tasks={completedTasks} 
+            onRepeatTask={handleRepeatTask}
+          />
+        </main>
+      </TimerProvider>
       {notification && (
         <Notification
           message={notification.message}
