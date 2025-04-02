@@ -312,5 +312,29 @@ export const tasksDB = {
         reject(checkRequest.error);
       };
     });
+  },
+
+  async updateCompletedTask(task: Task): Promise<void> {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([COMPLETED_TASKS_STORE], 'readwrite');
+      const store = transaction.objectStore(COMPLETED_TASKS_STORE);
+      const request = store.put(task);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async deleteCompletedTask(taskId: string): Promise<void> {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([COMPLETED_TASKS_STORE], 'readwrite');
+      const store = transaction.objectStore(COMPLETED_TASKS_STORE);
+      const request = store.delete(taskId);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
   }
 }; 

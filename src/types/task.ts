@@ -66,4 +66,13 @@ export interface TaskSummaryProps {
 export interface CompletedTasksListProps {
   tasks: Task[];
   onRepeatTask: (category: string, description: string, pomodoros?: number) => void;
+  onEditCompletedTask?: (taskId: string, category: string, description: string, duration: number) => void;
+  onDeleteCompletedTask?: (taskId: string) => void;
+}
+
+export interface CompletedTaskMenuProps {
+  onEdit: () => void;
+  onDelete: () => void;
+  onRepeat: () => void;
+  onClose: () => void;
 } 

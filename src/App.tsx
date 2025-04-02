@@ -257,6 +257,56 @@ function App() {
     }
   };
 
+  const handleEditCompletedTask = async (taskId: string, category: string, description: string, duration: number) => {
+    try {
+      const task = completedTasks.find(t => t.id === taskId);
+      if (!task) {
+        setNotification({
+          message: 'Task not found',
+          type: 'error'
+        });
+        return;
+      }
+
+      const updatedTask = {
+        ...task,
+        category,
+        description,
+        duration
+      };
+
+      await tasksDB.updateCompletedTask(updatedTask);
+      setCompletedTasks(prev => prev.map(t => t.id === taskId ? updatedTask : t));
+      setNotification({
+        message: 'Completed task updated',
+        type: 'info'
+      });
+    } catch (error) {
+      console.error('Failed to update completed task:', error);
+      setNotification({
+        message: 'Failed to update completed task',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleDeleteCompletedTask = async (taskId: string) => {
+    try {
+      await tasksDB.deleteCompletedTask(taskId);
+      setCompletedTasks(prev => prev.filter(t => t.id !== taskId));
+      setNotification({
+        message: 'Completed task deleted',
+        type: 'info'
+      });
+    } catch (error) {
+      console.error('Failed to delete completed task:', error);
+      setNotification({
+        message: 'Failed to delete completed task',
+        type: 'error'
+      });
+    }
+  };
+
   const activeTask = tasks[0] || null;
 
   return (
@@ -280,6 +330,8 @@ function App() {
           <CompletedTasksList 
             tasks={completedTasks} 
             onRepeatTask={handleRepeatTask}
+            onEditCompletedTask={handleEditCompletedTask}
+            onDeleteCompletedTask={handleDeleteCompletedTask}
           />
         </main>
       </TimerProvider>

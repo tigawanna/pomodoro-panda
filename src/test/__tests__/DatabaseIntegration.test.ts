@@ -771,4 +771,171 @@ describe('Database Integration', () => {
     expect(finalTasks[1].description).toBe('First');
     expect(finalTasks[2].description).toBe('Second');
   });
+
+  test('should update completed task fields', async () => {
+    const baseTime = Date.now();
+    const completedTask: Task = {
+      id: 'completed-edit-test',
+      description: 'Initial completed description',
+      category: 'Work',
+      completed: true,
+      pomodoros: 1,
+      endTime: baseTime,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000 // Use constant instead of hardcoded value
+    };
+
+    // Add initial completed task directly to the completed store
+    const db = await initDB();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction([COMPLETED_TASKS_STORE], 'readwrite');
+      const store = transaction.objectStore(COMPLETED_TASKS_STORE);
+      const request = store.add(completedTask);
+      
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+
+    // Edit completed task fields
+    const editedTask = {
+      ...completedTask,
+      description: 'Updated completed description',
+      category: 'Personal',
+      duration: DEFAULT_TIMER_SETTINGS.longBreakDuration * 1000 // Use constant instead of hardcoded value
+    };
+
+    try {
+      await tasksDB.updateCompletedTask(editedTask);
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB.updateCompletedTask() - Cannot edit completed task fields');
+      throw error;
+    }
+
+    // Verify the update
+    const completedTasks = await tasksDB.getCompletedTasks();
+    
+    try {
+      expect(completedTasks.length).toBe(1);
+      expect(completedTasks[0].description).toBe('Updated completed description');
+      expect(completedTasks[0].category).toBe('Personal');
+      expect(completedTasks[0].duration).toBe(DEFAULT_TIMER_SETTINGS.longBreakDuration * 1000);
+    } catch (error) {
+      console.error('FAILURE: Could not verify completed task update');
+      console.error('Expected updated values were not found in the database');
+      throw error;
+    }
+
+    // Verify other fields remained unchanged
+    try {
+      expect(completedTasks[0].id).toBe(completedTask.id);
+      expect(completedTasks[0].completed).toBe(completedTask.completed);
+      expect(completedTasks[0].pomodoros).toBe(completedTask.pomodoros);
+      expect(completedTasks[0].endTime).toBe(completedTask.endTime);
+    } catch (error) {
+      console.error('FAILURE: Other fields were unexpectedly modified during update');
+      console.error('Original task:', completedTask);
+      console.error('Updated task:', completedTasks[0]);
+      throw error;
+    }
+  });
+
+  test('should delete completed tasks', async () => {
+    const now = Date.now();
+    const completedTasks: Task[] = [
+      {
+        id: 'completed-delete-test-1',
+        description: 'Completed Task 1',
+        category: 'Work',
+        completed: true,
+        pomodoros: 1,
+        endTime: now - 2000,
+        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+      },
+      {
+        id: 'completed-delete-test-2',
+        description: 'Completed Task 2',
+        category: 'Personal',
+        completed: true,
+        pomodoros: 1,
+        endTime: now - 1000,
+        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+      },
+      {
+        id: 'completed-delete-test-3',
+        description: 'Completed Task 3',
+        category: 'Study',
+        completed: true,
+        pomodoros: 1,
+        endTime: now,
+        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+      }
+    ];
+
+    // Add completed tasks directly to the completed store
+    const db = await initDB();
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction([COMPLETED_TASKS_STORE], 'readwrite');
+      const store = transaction.objectStore(COMPLETED_TASKS_STORE);
+      
+      let count = 0;
+      completedTasks.forEach(task => {
+        const request = store.add(task);
+        request.onsuccess = () => {
+          count++;
+          if (count === completedTasks.length) {
+            resolve();
+          }
+        };
+        request.onerror = () => reject(request.error);
+      });
+      
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    });
+
+    // Verify tasks were added
+    let tasks = await tasksDB.getCompletedTasks();
+    
+    try {
+      expect(tasks.length).toBe(3);
+    } catch (error) {
+      console.error('FAILURE: Could not add test completed tasks');
+      console.error('Expected 3 tasks, got', tasks.length);
+      throw error;
+    }
+
+    // Delete middle task
+    try {
+      await tasksDB.deleteCompletedTask('completed-delete-test-2');
+    } catch (error: unknown) {
+      console.error('FAILURE IN tasksDB.deleteCompletedTask() - Cannot delete completed task');
+      throw error;
+    }
+
+    // Verify deletion
+    tasks = await tasksDB.getCompletedTasks();
+    
+    try {
+      expect(tasks.length).toBe(2);
+      expect(tasks.some(t => t.id === 'completed-delete-test-2')).toBe(false);
+      expect(tasks.some(t => t.id === 'completed-delete-test-1')).toBe(true);
+      expect(tasks.some(t => t.id === 'completed-delete-test-3')).toBe(true);
+    } catch (error) {
+      console.error('FAILURE: Deletion verification failed');
+      console.error('Expected 2 tasks with IDs "completed-delete-test-1" and "completed-delete-test-3"');
+      console.error('Got tasks:', tasks.map(t => t.id));
+      throw error;
+    }
+
+    // Try deleting non-existent task (should not throw)
+    try {
+      await tasksDB.deleteCompletedTask('non-existent-completed-task');
+      // Should not throw error for non-existent task
+    } catch (error) {
+      console.error('FAILURE IN tasksDB.deleteCompletedTask() - Should not throw error when deleting non-existent task');
+      console.error('Error:', error);
+      fail('Should not throw error when deleting non-existent task');
+    }
+  });
 }); 
