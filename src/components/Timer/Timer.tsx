@@ -31,6 +31,7 @@ export const Timer: React.FC<TimerProps> = ({
         timerType,
         sessionsCompleted,
         hasStarted,
+        isRunning,
         switchTimer,
         settings,
     } = useTimer({
@@ -127,7 +128,7 @@ export const Timer: React.FC<TimerProps> = ({
                         : 'No task selected'}
                 </div>
                 <TimerControls
-                    isPaused={!hasStarted}
+                    isPaused={!isRunning && hasStarted}
                     hasStarted={hasStarted}
                     onStart={handleStart}
                     onResume={handleResume}
