@@ -1,9 +1,6 @@
 import { Task, TimerSettings } from '../types';
 import { DEFAULT_TIMER_SETTINGS } from '../constants/timerConstants';
 
-import { Task, TimerSettings } from '../types';
-import { DEFAULT_TIMER_SETTINGS } from '../constants/timerConstants';
-
 export const calculateEstimatedCompletion = (
     tasks: Task[],
     taskIndex: number,
