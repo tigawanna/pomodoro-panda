@@ -37,7 +37,12 @@ export const Timer: React.FC<TimerProps> = ({
     } = useTimer({
         onComplete: async (type) => {
             if (type === TIMER_TYPES.WORK) {
-                await onTaskComplete();
+                // Mark the pomodoro as completed in the database
+                await handleDone();
+                showNotification(type);
+                setNotification(COMPLETION_MESSAGES[type]);
+            } else {
+                // For break timers, just show notification
                 showNotification(type);
                 setNotification(COMPLETION_MESSAGES[type]);
             }
