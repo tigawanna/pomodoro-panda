@@ -7,9 +7,9 @@ export const TIMER_TYPES = {
 export type TimerType = typeof TIMER_TYPES[keyof typeof TIMER_TYPES];
 
 export const DEFAULT_TIMER_SETTINGS = {
-  workDuration: 0.1 * 60,  // 25 minutes
-  breakDuration: 0.05 * 60,  // 5 minutes
-  longBreakDuration: 0.25 * 60,  // 15 minutes
+  workDuration: 90 * 60,  // 90 minutes
+  breakDuration: 30 * 60,  // 30 minutes
+  longBreakDuration: 60 * 60,  // 60 minutes
   sessionsUntilLongBreak: 4
 } as const;
 
