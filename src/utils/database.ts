@@ -14,7 +14,7 @@ const DB_MIGRATIONS = {
   1: (db: IDBDatabase) => {
     // Initial version - Basic task management
     const taskStore = db.createObjectStore(TASKS_STORE, { keyPath: 'id' });
-    taskStore.createIndex('startTime', 'startTime');
+    taskStore.createIndex('endTime', 'endTime');
     taskStore.createIndex('order', 'order');
   },
   2: (db: IDBDatabase) => {
@@ -56,13 +56,10 @@ export const initDB = (): Promise<IDBDatabase> => {
       const db = (event.target as IDBOpenDBRequest).result;
       const oldVersion = event.oldVersion;
 
-      console.log(`Upgrading database from version ${oldVersion} to ${DB_VERSION}`);
-
       // Run all migrations in sequence
       for (let version = oldVersion + 1; version <= DB_VERSION; version++) {
         const migration = DB_MIGRATIONS[version as keyof typeof DB_MIGRATIONS];
         if (migration) {
-          console.info(`Running database migration to version ${version}`);
           migration(db);
         }
       }
@@ -76,10 +73,33 @@ export const tasksDB = {
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE], 'readwrite');
       const store = transaction.objectStore(TASKS_STORE);
-
-      const request = store.add(task);
-      request.onsuccess = () => resolve(task.id);
-      request.onerror = () => reject(request.error);
+      
+      // Use cursor for memory efficiency
+      const tasks: Task[] = [];
+      const cursorRequest = store.openCursor();
+      
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (cursor) {
+          tasks.push(cursor.value);
+          cursor.continue();
+        } else {
+          // All tasks collected, now add new task
+          const taskWithOrder = { ...task, order: tasks.length };
+          
+          // Batch operations for better performance
+          const batchSize = 100;
+          for (let i = 0; i < tasks.length; i += batchSize) {
+            const batch = tasks.slice(i, i + batchSize);
+            batch.forEach(t => store.put(t));
+          }
+          
+          store.add(taskWithOrder);
+        }
+      };
+      
+      transaction.oncomplete = () => resolve(task.id);
+      transaction.onerror = () => reject(transaction.error);
     });
   },
 
@@ -93,12 +113,12 @@ export const tasksDB = {
 
       request.onsuccess = () => {
         const tasks = request.result || [];
-        // Sort by order property, fallback to startTime
+        // Sort by order property only
         const sortedTasks = [...tasks].sort((a, b) => {
           if (a.order !== undefined && b.order !== undefined) {
             return a.order - b.order;
           }
-          return a.startTime - b.startTime;
+          return 0; // maintain original order if no order property
         });
         resolve(sortedTasks);
       };
@@ -241,12 +261,11 @@ export const tasksDB = {
 
   async completeOnePomodoro(taskId: string, completedPomodoro: Task): Promise<void> {
     const db = await initDB();
-    console.log('Starting pomodoro completion for task:', taskId);
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([TASKS_STORE, COMPLETED_TASKS_STORE], "readwrite");
 
       transaction.oncomplete = () => {
-        console.info('Pomodoro completion transaction successful');
+        console.log('Transaction completed for task:', taskId);
         resolve();
       };
 
@@ -262,6 +281,11 @@ export const tasksDB = {
       const checkRequest = completedStore.get(completedPomodoro.id);
       
       checkRequest.onsuccess = () => {
+        console.log('Checking for existing completed task:', {
+          taskId,
+          exists: !!checkRequest.result
+        });
+
         if (checkRequest.result) {
           console.error('Duplicate task ID detected when completing pomodoro:', completedPomodoro.id);
           // Modify the ID to make it unique
@@ -273,7 +297,12 @@ export const tasksDB = {
 
         getRequest.onsuccess = () => {
           const originalTask = getRequest.result;
-          console.log('Original task:', originalTask);
+          console.log('Retrieved original task:', {
+            taskId,
+            found: !!originalTask,
+            task: originalTask
+          });
+
           if (!originalTask) {
             transaction.abort();
             reject(new Error('Task not found'));

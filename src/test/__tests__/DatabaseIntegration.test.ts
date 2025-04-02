@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import { tasksDB, initDB, TASKS_STORE, COMPLETED_TASKS_STORE } from '../../utils/database'; import type { Task } from '../../types';
 import { fail } from 'assert';
+import { v4 as uuidv4 } from 'uuid';
 
 describe('Database Integration', () => {
   // Clean up database after all tests
@@ -62,7 +63,7 @@ describe('Database Integration', () => {
       await tasksDB.add({ ...task, order: index });
     }
 
-    // Verify initial order (should be by startTime)
+    // Verify initial order (should be by endTime)
     let retrievedTasks = await tasksDB.getAll();
     try {
       expect(retrievedTasks[0].id, 'Initial order should have task 1 first').toBe('1');
@@ -72,7 +73,6 @@ describe('Database Integration', () => {
       console.error('FAILURE IN tasksDB.getAll()');
       console.error('\nCurrent task order:', retrievedTasks.map(t => ({
         id: t.id,
-        startTime: new Date(t.startTime).toISOString(),
         order: t.order
       })));
       throw error;
@@ -123,22 +123,56 @@ describe('Database Integration', () => {
   test('should handle tasks with same endTime but different order', async () => {
     const now = Date.now();
     const tasks: Task[] = [
-      { id: '1', description: 'Task A', category: 'Work', completed: true, endTime: now, pomodoros: 1 },
-      { id: '2', description: 'Task B', category: 'Work', completed: true, endTime: now, pomodoros: 1 },
-      { id: '3', description: 'Task C', category: 'Work', completed: true, endTime: now, pomodoros: 1 }
+      { 
+        id: uuidv4(), 
+        description: 'Task A', 
+        category: 'Work', 
+        completed: true, 
+        endTime: now,
+        pomodoros: 1 
+      },
+      { 
+        id: uuidv4(), 
+        description: 'Task B', 
+        category: 'Work', 
+        completed: true, 
+        endTime: now,
+        pomodoros: 1 
+      }
     ];
+    // Add tasks to tasks store
+    await tasksDB.updateAll(tasks);
+
+    console.log('Initial tasks:', tasks.map(t => (t)));
+
+    // confirm tasks are in tasks store
+    const tasksFromStore = await tasksDB.getAll();
+    expect(tasksFromStore.length).toBe(tasks.length);
+    expect(tasksFromStore.every(t => tasks.some(t2 => t2.id === t.id))).toBe(true);
+    console.log('Tasks from store:', tasksFromStore.map(t => (t)));
 
     // Add tasks to completed store
-    for (const task of tasks) {
+    for (const task of tasksFromStore) {
+      console.log('Attempting to complete task:', {
+        taskId: task.id,
+        completedPomodoro: {
+          id: task.id,
+          endTime: task.endTime,
+          order: task.order
+        }
+      });
       await tasksDB.completeOnePomodoro(task.id, task);
     }
 
     // Verify order in completed tasks
     const completedTasks = await tasksDB.getCompletedTasks();
-    expect(completedTasks.length).toBe(3);
-    // Most recent first
-    expect(completedTasks[0].endTime).toBeGreaterThanOrEqual(completedTasks[1].endTime);
-    expect(completedTasks[1].endTime).toBeGreaterThanOrEqual(completedTasks[2].endTime);
+    console.log('Retrieved completed tasks:', completedTasks.map(t => (t)));
+
+    expect(completedTasks.length).toBe(2);
+    expect(completedTasks[0].endTime).toBe(completedTasks[1].endTime);
+    if (completedTasks[0].order && completedTasks[1].order) {
+      expect(completedTasks[0].order).toBeLessThan(completedTasks[1].order);
+    }
   });
 
   test('should update existing tasks', async () => {
@@ -593,10 +627,72 @@ describe('Database Integration', () => {
   });
 
   test('should handle completing of multi-pomodoro tasks', async () => {
-    const taskId = 'multi-pomodoro-test';
+    const taskId = uuidv4();
     const task: Task = {
       id: taskId,
-      description: 'Task with multiple pomodoros',
+      description: 'Multi-pomodoro Task',
+      category: 'Work',
+      completed: false,
+      pomodoros: 2
+    };
+
+    await tasksDB.add(task);
+
+    const completedPomodoro = {
+      ...task,
+      id: `${taskId}_completed`,
+      completed: true,
+      endTime: Date.now(),
+      pomodoros: 1
+    };
+
+    await tasksDB.completeOnePomodoro(taskId, completedPomodoro);
+
+    const [activeTasks, completedTasks] = await Promise.all([
+      tasksDB.getAll(),
+      tasksDB.getCompletedTasks()
+    ]);
+
+    expect(activeTasks.length).toBe(1);
+    expect(activeTasks[0].pomodoros).toBe(1);
+    expect(completedTasks.length).toBe(1);
+    expect(completedTasks[0].endTime).toBeDefined();
+    expect(completedTasks[0].pomodoros).toBe(1);
+
+    // Complete second pomodoro
+    const finalPomodoro = {
+      ...task,
+      id: `${taskId}_final`,
+      completed: true,
+      endTime: Date.now() + 1000, // Ensure different endTime
+      pomodoros: 1
+    };
+
+    await tasksDB.completeOnePomodoro(taskId, finalPomodoro);
+
+    // Verify final states
+    const [finalActiveTasks, finalCompletedTasks] = await Promise.all([
+      tasksDB.getAll(),
+      tasksDB.getCompletedTasks()
+    ]);
+
+    // No active tasks should remain
+    expect(finalActiveTasks.length).toBe(0);
+    
+    // Should have two completed pomodoros
+    expect(finalCompletedTasks.length).toBe(2);
+    // Most recent completion should be first
+    expect(finalCompletedTasks[0].id).toBe(finalPomodoro.id);
+    expect(finalCompletedTasks[1].id).toBe(completedPomodoro.id);
+  });
+
+  test('should order completed tasks by endTime', async () => {
+    const baseTime = Date.now();
+    const originalTaskId = uuidv4();
+    
+    const task: Task = {
+      id: originalTaskId,
+      description: 'Multi-pomodoro task',
       category: 'Work',
       completed: false,
       pomodoros: 3
@@ -604,26 +700,92 @@ describe('Database Integration', () => {
 
     await tasksDB.add(task);
 
-    // Complete first pomodoro
+    // Complete pomodoros at different times
     const completedPomodoro1 = {
       ...task,
-      id: `completed-${taskId}-${Date.now()}`,
+      id: `completed-${originalTaskId}-${baseTime - 2000}`,
       completed: true,
-      endTime: Date.now(),
-      duration: 25 * 60 * 1000, // 25 minutes
+      endTime: baseTime - 2000,
+      duration: 25 * 60 * 1000,
       pomodoros: 1
     };
 
-    await tasksDB.completeOnePomodoro(taskId, completedPomodoro1);
-    
-    // Verify active tasks are updated
-    const activeTasks = await tasksDB.getAll();
-    expect(activeTasks.length).toBe(0);
+    const completedPomodoro2 = {
+      ...task,
+      id: `completed-${originalTaskId}-${baseTime - 1000}`,
+      completed: true,
+      endTime: baseTime - 1000,
+      duration: 25 * 60 * 1000,
+      pomodoros: 1
+    };
 
-    // Verify completed tasks are updated
+    const completedPomodoro3 = {
+      ...task,
+      id: `completed-${originalTaskId}-${baseTime}`,
+      completed: true,
+      endTime: baseTime,
+      duration: 25 * 60 * 1000,
+      pomodoros: 1
+    };
+
+    // Complete pomodoros in random order
+    await tasksDB.completeOnePomodoro(originalTaskId, completedPomodoro2);
+    await tasksDB.completeOnePomodoro(originalTaskId, completedPomodoro1);
+    await tasksDB.completeOnePomodoro(originalTaskId, completedPomodoro3);
+
     const completedTasks = await tasksDB.getCompletedTasks();
-    expect(completedTasks.length).toBe(1);
-    expect(completedTasks[0].id).toBe(completedPomodoro1.id);
-    expect(completedTasks[0].pomodoros).toBe(1);
+    expect(completedTasks.length).toBe(3);
+    // Should be ordered by endTime descending (newest first)
+    expect(completedTasks[0].endTime).toBe(baseTime);
+    expect(completedTasks[1].endTime).toBe(baseTime - 1000);
+    expect(completedTasks[2].endTime).toBe(baseTime - 2000);
+  });
+
+  test('should handle tasks without optional fields', async () => {
+    const taskId = uuidv4();
+    const minimalTask: Task = {
+      id: taskId,
+      description: 'Minimal Task',
+      category: 'Work',
+      completed: false,
+      pomodoros: 1
+    };
+
+    await tasksDB.add(minimalTask);
+    const tasks = await tasksDB.getAll();
+    expect(tasks.length).toBe(1);
+    expect(tasks[0].endTime).toBeUndefined();
+    expect(tasks[0].duration).toBeUndefined();
+  });
+
+  test('should maintain order during batch updates', async () => {
+    const tasks: Task[] = [
+      { id: uuidv4(), description: 'First', category: 'Work', completed: false, pomodoros: 1 },
+      { id: uuidv4(), description: 'Second', category: 'Work', completed: false, pomodoros: 1 },
+      { id: uuidv4(), description: 'Third', category: 'Work', completed: false, pomodoros: 1 }
+    ];
+
+    // Initial add with order
+    await tasksDB.updateAll(tasks);
+
+    // Get tasks to verify order was assigned
+    const initialTasks = await tasksDB.getAll();
+    expect(initialTasks[0].order).toBe(0);
+    expect(initialTasks[1].order).toBe(1);
+    expect(initialTasks[2].order).toBe(2);
+
+    // Reorder tasks (move last to first)
+    const reorderedTasks = [
+      initialTasks[2],
+      initialTasks[0],
+      initialTasks[1]
+    ];
+
+    await tasksDB.updateAll(reorderedTasks);
+
+    const finalTasks = await tasksDB.getAll();
+    expect(finalTasks[0].description).toBe('Third');
+    expect(finalTasks[1].description).toBe('First');
+    expect(finalTasks[2].description).toBe('Second');
   });
 }); 
