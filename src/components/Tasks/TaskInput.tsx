@@ -11,41 +11,51 @@ export const TaskInput: React.FC<TaskInputProps> = ({
   isEditingCompleted = false,
   onCancelEdit 
 }) => {
-  const [category, setCategory] = useState(initialValues?.category || '');
-  const [description, setDescription] = useState(initialValues?.description || '');
-  const [duration, setDuration] = useState(
-    initialValues?.duration ? Math.round(initialValues.duration / 60000) : 25
-  );
+  // Form state
+  const [formState, setFormState] = useState({
+    category: initialValues?.category || '',
+    description: initialValues?.description || '',
+    duration: initialValues?.duration ? Math.round(initialValues.duration / 60000) : 25
+  });
 
-  // Reset form when initialValues change
+  // Only set initial values once when entering edit mode
   useEffect(() => {
-    if (initialValues) {
-      setCategory(initialValues.category);
-      setDescription(initialValues.description);
-      if (initialValues.duration) {
-        setDuration(Math.round(initialValues.duration / 60000));
-      }
+    if (isEditing && initialValues) {
+      setFormState({
+        category: initialValues.category,
+        description: initialValues.description,
+        duration: initialValues.duration ? Math.round(initialValues.duration / 60000) : 25
+      });
     }
-  }, [initialValues]);
+  }, [isEditing]); // Only depend on edit mode changes
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormState(prev => ({
+      ...prev,
+      [name]: name === 'duration' ? Math.max(1, parseInt(value) || 0) : value
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const { category, description, duration } = formState;
+
     if (category && description) {
       if (isEditing) {
         if (isEditingCompleted && onEditCompletedTask) {
-          // Convert minutes to milliseconds for storage
           onEditCompletedTask(category, description, duration * 60000);
         } else if (onEditTask) {
           onEditTask(category, description);
         }
       } else {
         onAddTask(category, description);
-      }
-      // Only clear form if not editing
-      if (!isEditing) {
-        setCategory('');
-        setDescription('');
-        setDuration(25);
+        // Reset form only when adding new task
+        setFormState({
+          category: '',
+          description: '',
+          duration: 25
+        });
       }
     }
   };
@@ -54,8 +64,9 @@ export const TaskInput: React.FC<TaskInputProps> = ({
     <form className={styles.taskInput} onSubmit={handleSubmit}>
       <input
         type="text"
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
+        name="category"
+        value={formState.category}
+        onChange={handleInputChange}
         placeholder="work"
         className={styles.categoryInput}
         aria-label="Task category"
@@ -63,8 +74,9 @@ export const TaskInput: React.FC<TaskInputProps> = ({
       />
       <input
         type="text"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        name="description"
+        value={formState.description}
+        onChange={handleInputChange}
         placeholder="Short description"
         className={styles.descriptionInput}
         aria-label="Task description"
@@ -73,8 +85,9 @@ export const TaskInput: React.FC<TaskInputProps> = ({
       {isEditingCompleted && (
         <input
           type="number"
-          value={duration}
-          onChange={(e) => setDuration(Math.max(1, parseInt(e.target.value) || 0))}
+          name="duration"
+          value={formState.duration}
+          onChange={handleInputChange}
           min="1"
           className={styles.durationInput}
           aria-label="Task duration in minutes"
