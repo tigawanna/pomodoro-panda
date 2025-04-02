@@ -53,10 +53,10 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({
     }
   };
 
-  const handleEditSubmit = (taskId: string, category: string, description: string) => {
+  const handleEditSubmit = (taskId: string, category: string, description: string, duration: number) => {
     const task = tasks.find(t => t.id === taskId);
     if (task && onEditCompletedTask) {
-      onEditCompletedTask(taskId, category, description, task.duration || 0);
+      onEditCompletedTask(taskId, category, description, duration);
       setIsEditing(null);
     }
   };
@@ -85,12 +85,16 @@ export const CompletedTasksList: React.FC<CompletedTasksListProps> = ({
               >
                 <TaskInput
                   onAddTask={() => {}} // Not used in edit mode
-                  onEditTask={(category, description) => handleEditSubmit(task.id, category, description)}
+                  onEditCompletedTask={(category, description, duration) => 
+                    handleEditSubmit(task.id, category, description, duration)
+                  }
                   initialValues={{
                     category: task.category,
                     description: task.description,
+                    duration: task.duration || 0
                   }}
                   isEditing={true}
+                  isEditingCompleted={true}
                   onCancelEdit={() => setIsEditing(null)}
                 />
               </div>

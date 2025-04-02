@@ -14,11 +14,14 @@ export interface Task {
 export interface TaskInputProps {
   onAddTask: (category: string, description: string) => void;
   onEditTask?: (category: string, description: string) => void;
+  onEditCompletedTask?: (category: string, description: string, duration: number) => void;
   initialValues?: {
     category: string;
     description: string;
+    duration?: number;
   };
   isEditing?: boolean;
+  isEditingCompleted?: boolean;
   onCancelEdit?: () => void;
 }
 

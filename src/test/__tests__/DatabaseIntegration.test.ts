@@ -772,7 +772,7 @@ describe('Database Integration', () => {
     expect(finalTasks[2].description).toBe('Second');
   });
 
-  test('should update completed task fields', async () => {
+  test('should update completed task fields (duration, category, description)', async () => {
     const baseTime = Date.now();
     const completedTask: Task = {
       id: 'completed-edit-test',
@@ -797,7 +797,7 @@ describe('Database Integration', () => {
       transaction.onerror = () => reject(transaction.error);
     });
 
-    // Edit completed task fields
+    // Edit completed task fields - specifically duration, category, and description
     const editedTask = {
       ...completedTask,
       description: 'Updated completed description',
