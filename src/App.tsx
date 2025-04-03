@@ -11,7 +11,7 @@ import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
 import { TimerProvider } from './contexts/TimerContext';
 import { initializeApp } from './utils/appSetup';
 import { useLogger } from './hooks/useLogger';
-
+import TestSentryButton from './components/Common/TestSentryButton';
 export interface TimerControlsProps {
     isPaused: boolean;
     hasStarted: boolean;
@@ -33,14 +33,7 @@ function App() {
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
 
     const logger = useLogger('App');
-
     logger.info('App initialized');
-
-    try {
-        throw new Error('Test error');
-    } catch (error) {
-        logger.error('Test error', error);
-    }
 
     // Initialize the app
     useEffect(() => {
@@ -359,6 +352,7 @@ function App() {
 
     return (
         <div className="app">
+            <TestSentryButton />
             <TimerProvider>
                 <main className="main-content">
                     <Timer
