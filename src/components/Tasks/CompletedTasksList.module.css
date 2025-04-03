@@ -1,11 +1,13 @@
 .completedTasksHeader {
     margin-top: var(--spacing-sm);
     display: grid;
-    grid-template-columns: 1fr 2fr 100px 80px auto;
+    grid-template-columns: 0.35fr 2fr 0.35fr 0.2fr 0.05fr;
     align-items: center;
     font-weight: 400;
     color: var(--color-text-light);
     font-size: var(--font-size-sm);
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
 }
 
 .completedTasksList {
@@ -16,12 +18,13 @@
 
 .completedTaskItem {
     display: grid;
-    grid-template-columns: 1fr 2fr 100px 80px auto;
+    grid-template-columns: 0.35fr 2fr 0.35fr 0.2fr 0.05fr;
     align-items: center;
     padding: var(--spacing-sm);
     border: 1px solid var(--color-border);
     border-radius: var(--border-radius-sm);
     text-wrap: "ellipsis";
+    gap: var(--spacing-sm);
 }
 
 .list {
