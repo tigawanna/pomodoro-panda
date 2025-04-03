@@ -19,6 +19,7 @@
     "@sentry/react": "^9.11.0",
     "@sentry/vite-plugin": "^3.2.4",
     "lodash": "^4.17.21",
+    "posthog-js": "^1.234.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "uuid": "^11.1.0"
