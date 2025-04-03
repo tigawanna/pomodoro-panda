@@ -10,8 +10,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
 import { TimerProvider } from './contexts/TimerContext';
 import { initializeApp } from './utils/appSetup';
-import { useLogger } from './hooks/useLogger';
-import TestSentryButton from './components/Common/TestSentryButton';
+import { ErrorBoundary } from './components/ErrorBoundary';
+
 export interface TimerControlsProps {
     isPaused: boolean;
     hasStarted: boolean;
@@ -32,9 +32,6 @@ function App() {
     );
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
 
-    const logger = useLogger('App');
-    logger.info('App initialized');
-
     // Initialize the app
     useEffect(() => {
         async function initialize() {
@@ -48,6 +45,7 @@ function App() {
 
         initialize();
     }, []);
+
 
     useEffect(() => {
         loadTasks();
@@ -351,40 +349,42 @@ function App() {
     const activeTask = tasks[0] || null;
 
     return (
-        <div className="app">
-            <TestSentryButton />
-            <TimerProvider>
-                <main className="main-content">
-                    <Timer
-                        selectedTask={activeTask}
-                        onTaskComplete={handleTaskComplete}
+        <ErrorBoundary fallback={<div>Something went wrong</div>}>
+            <div className="app">
+                <TimerProvider>
+                    <main className="main-content">
+                        <Timer
+                            selectedTask={activeTask}
+                            onTaskComplete={handleTaskComplete}
+                        />
+                        <TaskInput onAddTask={handleAddTask} />
+                        <TaskList
+                            tasks={tasks}
+                            activeTaskId={activeTask?.id || null}
+                            onReorder={handleReorderTasks}
+                            onDelete={handleDeleteTask}
+                            onUpdatePomodoros={handleUpdatePomodoros}
+                            onEditTask={handleEditTask}
+                            onMarkAsDone={handleMarkAsDone}
+                        />
+                        <CompletedTasksList
+                            tasks={completedTasks}
+                            onRepeatTask={handleRepeatTask}
+                            onEditCompletedTask={handleEditCompletedTask}
+                            onDeleteCompletedTask={handleDeleteCompletedTask}
+                        />
+                    </main>
+                </TimerProvider>
+                {notification && (
+                    <Notification
+                        message={notification.message}
+                        type={notification.type}
+                        onClose={() => setNotification(null)}
                     />
-                    <TaskInput onAddTask={handleAddTask} />
-                    <TaskList
-                        tasks={tasks}
-                        activeTaskId={activeTask?.id || null}
-                        onReorder={handleReorderTasks}
-                        onDelete={handleDeleteTask}
-                        onUpdatePomodoros={handleUpdatePomodoros}
-                        onEditTask={handleEditTask}
-                        onMarkAsDone={handleMarkAsDone}
-                    />
-                    <CompletedTasksList
-                        tasks={completedTasks}
-                        onRepeatTask={handleRepeatTask}
-                        onEditCompletedTask={handleEditCompletedTask}
-                        onDeleteCompletedTask={handleDeleteCompletedTask}
-                    />
-                </main>
-            </TimerProvider>
-            {notification && (
-                <Notification
-                    message={notification.message}
-                    type={notification.type}
-                    onClose={() => setNotification(null)}
-                />
-            )}
-        </div>
+                )}
+            </div>
+        </ErrorBoundary>
+
     );
 }
 
