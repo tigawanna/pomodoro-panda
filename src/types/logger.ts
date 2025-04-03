@@ -17,6 +17,8 @@ export interface SentryType {
         message?: string;
         data?: Record<string, unknown>;
         level?: 'info' | 'error' | 'warning';
+        timestamp?: number;    // Unix timestamp
+        filename?: string;     // Call site location
     }) => void;
 }
 

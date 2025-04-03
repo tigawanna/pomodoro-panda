@@ -108,22 +108,66 @@ class Logger {
     }
 
     /**
+     * Get the call site location for logging
+     */
+    private getCallSite(): string {
+        const error = new Error();
+        Error.captureStackTrace(error, this.getCallSite);
+        
+        const stackLines = error.stack?.split('\n') || [];
+        // Skip internal frames (Error, getCallSite, logger method)
+        const callerLine = stackLines[3] || '';
+        
+        // Extract file path and line number
+        const match = callerLine.match(/\((.+)\)/) || callerLine.match(/at (.+)/);
+        return match ? match[1].trim() : 'unknown location';
+    }
+
+    /**
+     * Format timestamp in a human-readable format
+     * Uses local time in development and UTC in production
+     */
+    private formatTimestamp(): string {
+        const now = new Date();
+        if (process.env.NODE_ENV === 'production') {
+            // Use UTC in production for consistency
+            return now.toISOString().split('T').join(' ').slice(0, -1);
+        } else {
+            // Use local time in development for easier debugging
+            const pad = (n: number) => n.toString().padStart(2, '0');
+            return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ` +
+                   `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}.` +
+                   `${now.getMilliseconds().toString().padStart(3, '0')}`;
+        }
+    }
+
+    /**
+     * Format the log message with timestamp, level, prefix, and call site
+     */
+    private formatMessage(level: string, message: string): string {
+        const callSite = this.getCallSite();
+        const timestamp = this.formatTimestamp();
+        return `${timestamp} [${level}] ${this.prefix} ${message} (${callSite})`;
+    }
+
+    /**
      * Log a debug message
      */
     debug(message: string, ...data: unknown[]): void {
         if (this.level <= LogLevel.DEBUG) {
             const enhancedData = this.addBrowserId(data);
-            console.debug(`[DEBUG] ${this.prefix} ${message}`, ...enhancedData);
+            console.debug(this.formatMessage('DEBUG', message), ...enhancedData);
 
-            // Sentry breadcrumb (but not a captured event)
             if (this.useSentry && this.sentryInstance) {
-                const enhancedData = this.addBrowserId(data);
                 this.sentryInstance.addBreadcrumb({
                     category: 'debug',
                     message: `${this.prefix} ${message}`,
                     data: enhancedData.length > 0 ? this.processDataForSentry(enhancedData) : undefined,
-                    level: 'info'
-                })
+                    level: 'info',
+                    // Include location data in Sentry
+                    timestamp: Date.now(),
+                    filename: this.getCallSite()
+                });
             }
         }
     }
@@ -134,21 +178,24 @@ class Logger {
     info(message: string, ...data: unknown[]): void {
         if (this.level <= LogLevel.INFO) {
             const enhancedData = this.addBrowserId(data);
-            console.info(`[INFO] ${this.prefix} ${message}`, ...enhancedData);
+            console.info(this.formatMessage('INFO', message), ...enhancedData);
 
-            // Sentry
             if (this.useSentry && this.sentryInstance) {
-                const enhancedData = this.addBrowserId(data);
+                const callSite = this.getCallSite();
                 this.sentryInstance.addBreadcrumb({
                     category: 'info',
                     message: `${this.prefix} ${message}`,
                     data: enhancedData.length > 0 ? this.processDataForSentry(enhancedData) : undefined,
-                    level: 'info'
-                })
+                    level: 'info',
+                    timestamp: Date.now(),
+                    filename: callSite
+                });
 
-                // In production, also capture info as messages for important info
                 if (process.env.NODE_ENV === 'production') {
-                    this.sentryInstance.captureMessage(`[INFO] ${this.prefix} ${message}`, 'info')
+                    this.sentryInstance.captureMessage(
+                        this.formatMessage('INFO', message),
+                        'info'
+                    );
                 }
             }
         }
@@ -160,19 +207,23 @@ class Logger {
     warn(message: string, ...data: unknown[]): void {
         if (this.level <= LogLevel.WARN) {
             const enhancedData = this.addBrowserId(data);
-            console.warn(`[WARN] ${this.prefix} ${message}`, ...enhancedData);
+            console.warn(this.formatMessage('WARN', message), ...enhancedData);
 
-            // Sentry
             if (this.useSentry && this.sentryInstance) {
-                const enhancedData = this.addBrowserId(data);
+                const callSite = this.getCallSite();
                 this.sentryInstance.addBreadcrumb({
                     category: 'warning',
                     message: `${this.prefix} ${message}`,
                     data: enhancedData.length > 0 ? this.processDataForSentry(enhancedData) : undefined,
-                    level: 'warning'
-                })
+                    level: 'warning',
+                    timestamp: Date.now(),
+                    filename: callSite
+                });
 
-                this.sentryInstance.captureMessage(`[WARN] ${this.prefix} ${message}`, 'warning')
+                this.sentryInstance.captureMessage(
+                    this.formatMessage('WARN', message),
+                    'warning'
+                );
             }
         }
     }
@@ -182,33 +233,45 @@ class Logger {
      */
     error(message: string | Error, ...data: unknown[]): void {
         if (this.level <= LogLevel.ERROR) {
+            const enhancedData = this.addBrowserId(data);
+            const callSite = this.getCallSite();
+
             if (message instanceof Error) {
-                const enhancedData = this.addBrowserId(data);
-                console.error(`[ERROR] ${this.prefix} ${message.message}`, message.stack, ...enhancedData, message);
+                console.error(
+                    this.formatMessage('ERROR', message.message),
+                    message.stack,
+                    ...enhancedData,
+                    message
+                );
             } else {
-                const enhancedData = this.addBrowserId(data);
-                console.error(`[ERROR] ${this.prefix} ${message}`, ...enhancedData);
+                console.error(
+                    this.formatMessage('ERROR', message),
+                    ...enhancedData
+                );
             }
 
-            // Sentry
             if (this.useSentry && this.sentryInstance) {
                 if (message instanceof Error) {
-                    // For Error objects, use captureException
-                    const enhancedData = this.addBrowserId(data);
                     this.sentryInstance.captureException(message, {
-                        extra: enhancedData.length > 0 ? this.processDataForSentry(enhancedData) : undefined
+                        extra: {
+                            ...this.processDataForSentry(enhancedData),
+                            location: callSite
+                        }
                     });
                 } else {
-                    // For string messages, add breadcrumb and capture message
-                    const enhancedData = this.addBrowserId(data);
                     this.sentryInstance.addBreadcrumb({
                         category: 'error',
                         message: `${this.prefix} ${message}`,
                         data: enhancedData.length > 0 ? this.processDataForSentry(enhancedData) : undefined,
-                        level: 'error'
-                    })
+                        level: 'error',
+                        timestamp: Date.now(),
+                        filename: callSite
+                    });
 
-                    this.sentryInstance.captureMessage(`[ERROR] ${this.prefix} ${message}`, 'error')
+                    this.sentryInstance.captureMessage(
+                        this.formatMessage('ERROR', message),
+                        'error'
+                    );
                 }
             }
         }
