@@ -36,6 +36,12 @@ function App() {
 
     logger.info('App initialized');
 
+    try {
+        throw new Error('Test error');
+    } catch (error) {
+        logger.error('Test error', error);
+    }
+
     // Initialize the app
     useEffect(() => {
         async function initialize() {
