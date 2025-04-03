@@ -1,9 +1,10 @@
-import { logger, LogLevel } from './logger';
+import { logger } from './logger';
+import { LogLevel } from '../types/logger';
 
 /**
  * Initialize the logger and other app settings
  */
-export function initializeApp() {
+export async function initializeApp() {
     // Fine-tune the logger level based on environment
     if (process.env.NODE_ENV === "development") {
         // Already set to DEBUG by default
@@ -13,6 +14,32 @@ export function initializeApp() {
     else if (process.env.NODE_ENV === "production") {
         // Already set to WARN by default
         logger.info("App initialized in production mode");
+
+        // Check if we should use Sentry
+        if (process.env.REACT_APP_USE_SENTRY === 'true' && process.env.REACT_APP_SENTRY_DSN) {
+            try {
+                // Dynamically import Sentry to avoid bundling in development
+                const Sentry = await import('@sentry/react')
+
+                // Initialize Sentry with the provided DSN
+                Sentry.init({
+                    dsn: process.env.REACT_APP_SENTRY_DSN,
+                    environment: process.env.NODE_ENV,
+                    beforeSend(event){
+                        return event;
+                    }
+                })
+
+                logger.configure({
+                    useSentry: true,
+                    sentryInstance: Sentry,
+                })
+
+                logger.info("Sentry initialized successfully");
+            } catch (error) {
+                console.error("Failed to initialize Sentry", error);
+            }
+        }
     } else if (process.env.NODE_ENV === "test") {
         // Disable all logging in test mode
         logger.setLevel(LogLevel.NONE);
