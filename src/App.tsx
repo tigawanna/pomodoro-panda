@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
 import { TimerProvider } from './contexts/TimerContext';
 import { initializeApp } from './utils/appSetup';
+import { useLogger } from './hooks/useLogger';
 
 export interface TimerControlsProps {
     isPaused: boolean;
@@ -30,6 +31,10 @@ function App() {
         null
     );
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+
+    const logger = useLogger('App');
+
+    logger.info('App initialized');
 
     // Initialize the app
     useEffect(() => {

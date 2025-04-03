@@ -26,6 +26,9 @@ export async function initializeApp() {
                     dsn: process.env.REACT_APP_SENTRY_DSN,
                     environment: process.env.NODE_ENV,
                     beforeSend(event){
+                        // Add browser ID to all Sentry events
+                        event.tags = event.tags || {};
+                        event.tags.browserId = logger.getBrowserInstanceId()
                         return event;
                     }
                 })

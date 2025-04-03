@@ -25,6 +25,7 @@ export interface LoggerConfig {
     prefix?: string;
     useSentry?: boolean;
     sentryInstance?: SentryType;
+    browserId?: string;
 }
 
 
