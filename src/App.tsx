@@ -11,6 +11,7 @@ import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
 import { TimerProvider } from './contexts/TimerContext';
 import { initializeApp } from './utils/appSetup';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useLogger } from './hooks/useLogger';
 
 export interface TimerControlsProps {
     isPaused: boolean;
@@ -31,13 +32,13 @@ function App() {
         null
     );
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+    const logger = useLogger('App');
 
     // Initialize the app
     useEffect(() => {
         async function initialize() {
             try {
                 await initializeApp();
-                console.log('App initialization complete');
             } catch (error) {
                 console.error('Failed to initialize app:', error);
             }
@@ -57,7 +58,7 @@ function App() {
             const loadedTasks = await tasksDB.getAll();
             setTasks(loadedTasks);
         } catch (error) {
-            console.error('Failed to load tasks:', error);
+            logger.error('Failed to load tasks:', error);
             setNotification({
                 message: 'Failed to load tasks',
                 type: 'error',
@@ -70,7 +71,7 @@ function App() {
             const tasks = await tasksDB.getCompletedTasks();
             setCompletedTasks(tasks);
         } catch (error) {
-            console.error('Failed to load completed tasks:', error);
+            logger.error('Failed to load completed tasks:', error);
             setNotification({
                 message: 'Failed to load completed tasks',
                 type: 'error',
@@ -95,7 +96,7 @@ function App() {
                 type: 'success',
             });
         } catch (error) {
-            console.error('Failed to add task:', error);
+            logger.error('Failed to add task:', error);
             setNotification({
                 message: 'Failed to add task',
                 type: 'error',
@@ -110,7 +111,7 @@ function App() {
         try {
             await tasksDB.updateAll(reorderedTasks);
         } catch (error) {
-            console.error('Failed to persist task order:', error);
+            logger.error('Failed to persist task order:', error);
             setTasks(previousTasks);
             // Optionally show an error notification to the user
         }
@@ -125,7 +126,7 @@ function App() {
                 type: 'info',
             });
         } catch (error) {
-            console.error('Failed to delete task:', error);
+            logger.error('Failed to delete task:', error);
             setNotification({
                 message: 'Failed to delete task',
                 type: 'error',
@@ -144,7 +145,7 @@ function App() {
                 prev.map((t) => (t.id === taskId ? updatedTask : t))
             );
         } catch (error) {
-            console.error('Failed to update task pomodoros:', error);
+            logger.error('Failed to update task pomodoros:', error);
         }
     };
 
@@ -178,7 +179,7 @@ function App() {
                 type: 'info',
             });
         } catch (error) {
-            console.error('Failed to update task:', error);
+            logger.error('Failed to update task:', error);
             setNotification({
                 message: 'Failed to update task',
                 type: 'error',
@@ -187,7 +188,7 @@ function App() {
     };
 
     const handleTaskComplete = async () => {
-        console.log('Task complete - updating lists');
+        logger.info('Task complete - updating lists');
         try {
             const [tasks, completedTasks] = await Promise.all([
                 tasksDB.getAll(),
@@ -196,7 +197,7 @@ function App() {
             setTasks(tasks);
             setCompletedTasks(completedTasks);
         } catch (error) {
-            console.error('Error updating lists after task completion:', error);
+            logger.error('Error updating lists after task completion:', error);
             setNotification({
                 message: 'Failed to update task lists',
                 type: 'error',
@@ -233,7 +234,7 @@ function App() {
                     type: 'info',
                 });
             } catch (error) {
-                console.error('Failed to update task:', error);
+                logger.error('Failed to update task:', error);
                 setNotification({
                     message: 'Failed to update task',
                     type: 'error',
@@ -265,7 +266,7 @@ function App() {
                 completed: true,
             };
 
-            console.log('Marking task as done:', {
+            logger.info('Marking task as done:', {
                 taskId,
                 completedTask,
             });
@@ -281,7 +282,7 @@ function App() {
                 type: 'success',
             });
         } catch (error) {
-            console.error('Failed to mark task as done:', error);
+            logger.error('Failed to mark task as done:', error);
             setNotification({
                 message: 'Failed to mark task as done',
                 type: 'error',
@@ -321,7 +322,7 @@ function App() {
                 type: 'info',
             });
         } catch (error) {
-            console.error('Failed to update completed task:', error);
+            logger.error('Failed to update completed task:', error);
             setNotification({
                 message: 'Failed to update completed task',
                 type: 'error',
@@ -338,7 +339,7 @@ function App() {
                 type: 'info',
             });
         } catch (error) {
-            console.error('Failed to delete completed task:', error);
+            logger.error('Failed to delete completed task:', error);
             setNotification({
                 message: 'Failed to delete completed task',
                 type: 'error',

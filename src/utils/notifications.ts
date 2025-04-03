@@ -1,9 +1,12 @@
 import { NOTIFICATION_MESSAGES } from '../constants/timerConstants';
 import type { TimerType } from '../constants/timerConstants';
+import { logger } from './logger';
+
+const notificationLogger = logger.createLogger('Notifications');
 
 export const initializeNotifications = async () => {
   if (!("Notification" in window)) {
-    console.log("This browser does not support notifications");
+    notificationLogger.info("This browser does not support notifications");
     return false;
   }
 
@@ -22,21 +25,21 @@ export const initializeNotifications = async () => {
 export const playNotificationSound = () => {
   const audio = new Audio("/notification.wav");
   audio.play().catch(error => {
-    console.log("Audio playback failed:", error);
+    notificationLogger.error("Audio playback failed:", error);
   });
 };
 
 export const showNotification = (timerType: TimerType) => {
-  console.log('Notification permission:', Notification.permission);
-  console.log('Window focused:', document.hasFocus());
+  notificationLogger.info('Notification permission:', Notification.permission);
+  notificationLogger.info('Window focused:', document.hasFocus());
 
   if (Notification.permission === "granted") {
     new Notification("Pomodoro Timer", {
       body: NOTIFICATION_MESSAGES[timerType],
     });
-    console.log('Browser notification sent');
+    notificationLogger.info('Browser notification sent');
   }
   
-  console.log('Playing notification sound');
+  notificationLogger.info('Playing notification sound');
   playNotificationSound();
 }; 

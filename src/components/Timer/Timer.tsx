@@ -16,12 +16,14 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
+import { useLogger } from '../../hooks/useLogger';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
     onTaskComplete,
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
+    const logger = useLogger('Timer');
     
     const {
         timeLeft,
@@ -94,7 +96,7 @@ export const Timer: React.FC<TimerProps> = ({
             pomodoros: 1,
         };
 
-        console.log('Attempting to complete pomodoro:', {
+        logger.info('Attempting to complete pomodoro:', {
             taskId: selectedTask.id,
             completedTask,
             actualDuration: `${Math.round(actualDurationMs / 60000)}m`,
@@ -105,11 +107,11 @@ export const Timer: React.FC<TimerProps> = ({
 
         try {
             await tasksDB.completeOnePomodoro(selectedTask.id, completedTask);
-            console.log('Pomodoro completed successfully');
+            logger.info('Pomodoro completed successfully');
             await onTaskComplete();
             showInAppNotification(COMPLETION_MESSAGES[timerType]);
         } catch (error) {
-            console.error('Failed to complete task:', error);
+            logger.error('Failed to complete task:', error);
             showInAppNotification(ERROR_MESSAGES.TASK_COMPLETE_FAILED);
         }
     };

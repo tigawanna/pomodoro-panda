@@ -1,4 +1,7 @@
 import { Task } from '../types';
+import { logger } from './logger';
+
+const dbLogger = logger.createLogger('Database');
 
 // Add environment check and database name configuration
 const IS_PROD = process.env.NODE_ENV === 'production';
@@ -32,12 +35,12 @@ export const initDB = (): Promise<IDBDatabase> => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
     request.onerror = () => {
-      console.error('Database error:', request.error);
+      dbLogger.error('Database error:', request.error);
       reject(request.error);
     };
 
     request.onblocked = () => {
-      console.warn('Please close all other tabs with this site open!');
+      dbLogger.warn('Please close all other tabs with this site open!');
     };
 
     request.onsuccess = () => {
@@ -46,7 +49,7 @@ export const initDB = (): Promise<IDBDatabase> => {
       // Handle version change requests from other tabs
       db.onversionchange = () => {
         db.close();
-        console.log('Database is outdated, please reload the page.');
+        dbLogger.info('Database is outdated, please reload the page.');
       };
 
       resolve(db);

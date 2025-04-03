@@ -22,7 +22,7 @@ export async function initializeApp() {
                 Sentry.init({
                     dsn: import.meta.env.VITE_SENTRY_DSN,
                     environment: process.env.NODE_ENV,
-                    debug: true,
+                    debug: false,
                     integrations: [
                         Sentry.browserTracingIntegration(),
                         Sentry.replayIntegration(),
