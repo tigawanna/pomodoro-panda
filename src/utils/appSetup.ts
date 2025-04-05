@@ -25,13 +25,15 @@ export async function initializeApp() {
                     debug: false,
                     integrations: [
                         Sentry.feedbackIntegration({
-                            isNameRequired: true,
+                            isNameRequired: false,
                             isEmailRequired: true,
                             isMessageRequired: true,
                             themeLight:{
                                 accentBackground: '#d9534f',
                                 successColor: '#5cb85c'
-                            }
+                            },
+                            formTitle: 'Report a bug or provide feedback',
+                            messagePlaceholder: "Report any bugs or provide feedback here. Be as detailed as possible. Adrian(the guy building this), will get back to you within 24 hours.",
                         }),
                         Sentry.replayIntegration({
                             // help us see what was going on in the app when an error occurs
