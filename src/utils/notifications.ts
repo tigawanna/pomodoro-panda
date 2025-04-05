@@ -22,13 +22,6 @@ export const initializeNotifications = async () => {
   return false;
 };
 
-export const playNotificationSound = () => {
-  const audio = new Audio("/notification.wav");
-  audio.play().catch(error => {
-    notificationLogger.error("Audio playback failed:", error);
-  });
-};
-
 export const showNotification = (timerType: TimerType) => {
   notificationLogger.info('Notification permission:', Notification.permission);
   notificationLogger.info('Window focused:', document.hasFocus());
@@ -39,7 +32,4 @@ export const showNotification = (timerType: TimerType) => {
     });
     notificationLogger.info('Browser notification sent');
   }
-  
-  notificationLogger.info('Playing notification sound');
-  playNotificationSound();
 }; 

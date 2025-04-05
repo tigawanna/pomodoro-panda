@@ -14,9 +14,9 @@ export const DEFAULT_TIMER_SETTINGS = {
 } as const;
 
 export const NOTIFICATION_MESSAGES = {
-  [TIMER_TYPES.WORK]: "Time to focus!",
-  [TIMER_TYPES.BREAK]: "Take a short break!",
-  [TIMER_TYPES.LONG_BREAK]: "Time for a long break!"
+  [TIMER_TYPES.WORK]: "Time to take a break!",
+  [TIMER_TYPES.BREAK]: "Time to focus!",
+  [TIMER_TYPES.LONG_BREAK]: "Time to focus!"
 } as const;
 
 export const COMPLETION_MESSAGES = {

@@ -24,11 +24,24 @@ export async function initializeApp() {
                     environment: process.env.NODE_ENV,
                     debug: false,
                     integrations: [
-                        Sentry.browserTracingIntegration(),
-                        Sentry.replayIntegration(),
+                        Sentry.feedbackIntegration({
+                            isNameRequired: true,
+                            isEmailRequired: true,
+                            isMessageRequired: true,
+                            themeLight:{
+                                accentBackground: '#d9534f',
+                                successColor: '#5cb85c'
+                            }
+                        }),
+                        Sentry.replayIntegration({
+                            // help us see what was going on in the app when an error occurs
+                            // while keeping the user's data private
+                            maskAllText: false,
+                            maskAllInputs: false,
+                            blockAllMedia: false,
+                        })
                     ],
-                    tracesSampleRate: 1.0,
-                    replaysSessionSampleRate: 0.1,
+                    replaysSessionSampleRate: 0,
                     replaysOnErrorSampleRate: 1.0,
                 });
 
