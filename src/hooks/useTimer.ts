@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import type { UseTimerProps } from '../types/timer';
+import type { TimerState, UseTimerProps } from '../types/timer';
 import useTimerContext from './useTimerContext';
-import { TimerType } from '../constants/timerConstants';
+import type { Task } from '../types/task';
 
 export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
     const timerContext = useTimerContext();
@@ -9,8 +9,8 @@ export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
     // Register onComplete callback
     useEffect(() => {
         if (onComplete) {
-            timerContext.setOnComplete((timerType: string) =>
-                onComplete(timerType as TimerType)
+            timerContext.setOnComplete((state: TimerState) =>
+                onComplete(state)
             );
         }
 
@@ -21,16 +21,11 @@ export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
     }, [onComplete, timerContext]);
 
     return {
-        timeLeft: timerContext.timeLeft,
-        isRunning: timerContext.isRunning,
-        hasStarted: timerContext.hasStarted,
-        timerType: timerContext.timerType,
-        sessionsCompleted: timerContext.sessionsCompleted,
-        startTime: timerContext.startTime,
-        expectedEndTime: timerContext.expectedEndTime,
+
+        state: timerContext.state,
 
         // Methods
-        start: timerContext.startTimer,
+        start: (task: Task) => timerContext.startTimer(task),
         pause: timerContext.pauseTimer,
         reset: timerContext.resetTimer,
         switchTimer: timerContext.switchTimer,
@@ -39,7 +34,7 @@ export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
         settings: settings || timerContext.settings,
 
         // For backward compatibility with existing code
-        getStartTime: () => timerContext.startTime,
-        getExpectedEndTime: () => timerContext.expectedEndTime
+        getStartTime: () => timerContext.state.startTime,
+        getExpectedEndTime: () => timerContext.state.expectedEndTime
     };
 };

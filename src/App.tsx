@@ -1,30 +1,19 @@
 import { useEffect, useState } from 'react';
-import './App.css';
-import { TaskInput, TaskList } from './components/Tasks';
-import { Timer } from './components/Timer';
-import { Notification } from './components/Notification';
-import { Task, NotificationState } from './types';
-import { TimerType, DEFAULT_TIMER_SETTINGS } from './constants/timerConstants';
-import { tasksDB } from './utils/database';
 import { v4 as uuidv4 } from 'uuid';
-import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
-import { TimerProvider } from './contexts/TimerContext';
-import { initializeApp } from './utils/appSetup';
+import './App.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Notification } from './components/Notification';
+import { TaskInput, TaskList } from './components/Tasks';
+import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
+import { Timer } from './components/Timer';
+import { DEFAULT_TIMER_SETTINGS } from './constants/timerConstants';
+import { TimerProvider } from './contexts/TimerContext';
 import { useLogger } from './hooks/useLogger';
+import { NotificationState, Task } from './types';
+import { initializeApp } from './utils/appSetup';
+import { tasksDB } from './utils/database';
 
-export interface TimerControlsProps {
-    isPaused: boolean;
-    hasStarted: boolean;
-    onStart: () => void;
-    onResume: () => void;
-    onPause: () => void;
-    onStop: () => void;
-    onDone: () => void;
-    onSkip?: () => void;
-    disableWorkTimer?: boolean;
-    timerType: TimerType;
-}
+
 
 function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
