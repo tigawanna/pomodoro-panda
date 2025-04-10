@@ -54,7 +54,7 @@ export async function initializeApp() {
                     sentryInstance: Sentry,
                 });
 
-                // logger.info("Sentry initialized successfully");
+                logger.info("Sentry initialized successfully");
             } catch (error) {
                 console.error("Failed to initialize Sentry:", error);
             }

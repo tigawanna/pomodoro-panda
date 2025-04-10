@@ -114,10 +114,7 @@ export const TimerProvider: React.FC<{
     const getNextTimer = useCallback(() => {
         if (state.timerType === TIMER_TYPES.WORK) {
             const nextSessions = state.sessionsCompleted + 1;
-            timerReducerLogger.info('Next sessions', {
-                nextSessions,
-                sessionsUntilLongBreak: settings.sessionsUntilLongBreak,
-            });
+
             if (nextSessions % settings.sessionsUntilLongBreak === 0) {
                 return {
                     type: TIMER_TYPES.LONG_BREAK,
@@ -161,17 +158,6 @@ export const TimerProvider: React.FC<{
                 isRunning: false,
                 timeLeft: 0,
             }
-            timerReducerLogger.info('Now', {
-                now,
-                expectedEndTime: state.expectedEndTime,
-                remaining: state.expectedEndTime - now,
-                timeLeft: state.timeLeft,
-                newTimeLeft: Math.ceil((state.expectedEndTime - now) / 1000),
-            });
-
-            timerReducerLogger.info('Timer completed', {
-                finalState,
-            });
 
             // Call completion callback
             if (onCompleteRef.current) {

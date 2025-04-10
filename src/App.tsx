@@ -57,7 +57,7 @@ function App() {
 
     const loadCompletedTasks = async () => {
         try {
-            const tasks = await tasksDB.getCompletedTasks();
+            const tasks = await tasksDB.getCompletedTasksForToday();
             setCompletedTasks(tasks);
         } catch (error) {
             logger.error('Failed to load completed tasks:', error);
@@ -177,14 +177,14 @@ function App() {
     };
 
     const handleTaskComplete = async () => {
-        logger.info('Task complete - updating lists');
         try {
             const [tasks, completedTasks] = await Promise.all([
                 tasksDB.getAll(),
-                tasksDB.getCompletedTasks(),
+                tasksDB.getCompletedTasksForToday(),
             ]);
             setTasks(tasks);
             setCompletedTasks(completedTasks);
+
         } catch (error) {
             logger.error('Error updating lists after task completion:', error);
             setNotification({
@@ -254,11 +254,6 @@ function App() {
                 duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000, // Use constant instead of hardcoded value
                 completed: true,
             };
-
-            logger.info('Marking task as done:', {
-                taskId,
-                completedTask,
-            });
 
             // Add to completed tasks and remove from active tasks
             await tasksDB.completeOnePomodoro(taskId, completedTask);

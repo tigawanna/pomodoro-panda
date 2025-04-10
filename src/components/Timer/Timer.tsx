@@ -36,9 +36,6 @@ export const Timer: React.FC<TimerProps> = ({
         onComplete: async (state: TimerState) => {
             if (state.timerType === TIMER_TYPES.WORK) {
                 // Mark the pomodoro as completed in the database
-                logger.info('onComplete triggered', {
-                    state,
-                });
                 await handleDone(state);
                 showNotification(state.timerType);
                 setNotification(COMPLETION_MESSAGES[state.timerType]);
@@ -83,15 +80,6 @@ export const Timer: React.FC<TimerProps> = ({
         }
         switchTimer();
 
-        logger.info('handleDone triggered', {
-            timerState,
-            settings,
-            timeLeft: `${timerState.timeLeft} seconds`,
-            hasStarted: timerState.hasStarted,
-            isRunning: timerState.isRunning,
-            hasCompleted: timerState.hasCompleted,
-        });
-
         let actualDurationMs = undefined;
 
         if (timerState.hasCompleted) {
@@ -111,13 +99,6 @@ export const Timer: React.FC<TimerProps> = ({
             completed: true,
             pomodoros: 1,
         };
-
-        logger.info('Attempting to complete pomodoro:', {
-            taskId: timerState.activeTaskId,
-            completedTask,
-            actualDuration: actualDurationMs ? `${Math.round(actualDurationMs / 60000)}m` : 'unknown',  
-            timeSpent: actualDurationMs ? `${Math.round(actualDurationMs / 60000)}m` : 'unknown',
-        });
 
         try {
             if (!timerState.activeTaskId) {
