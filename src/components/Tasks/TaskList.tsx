@@ -34,7 +34,7 @@ export const TaskList: React.FC<TaskListProps> = ({
   onEditTask,
   onMarkAsDone, // Add this new prop
 }) => {
-  const { timeLeft, isRunning, startTime } = useTimerContext();
+  const { state } = useTimerContext();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   
@@ -104,10 +104,10 @@ export const TaskList: React.FC<TaskListProps> = ({
               estimatedCompletion={calculateEstimatedCompletion(
                 [task],
                 0,
-                task.id === activeTaskId ? timeLeft : null,
-                isRunning,
+                task.id === activeTaskId ? state.timeLeft : null,
+                state.isRunning,
                 activeTaskId,
-                startTime
+                state.startTime
               )}
             />
           ))}
@@ -126,10 +126,10 @@ export const TaskList: React.FC<TaskListProps> = ({
               {new Date(calculateEstimatedCompletion(
                 [activeTask],
                 0,
-                activeTask.id === activeTaskId ? timeLeft : null,
-                isRunning,
+                activeTask.id === activeTaskId ? state.timeLeft : null,
+                state.isRunning,
                 activeTaskId,
-                startTime
+                state.startTime
               )).toLocaleTimeString([], { 
                 hour: '2-digit', 
                 minute: '2-digit' 

@@ -1,24 +1,22 @@
 import React, {
     createContext,
-    useReducer,
-    useRef,
     useCallback,
     useEffect,
+    useReducer,
+    useRef,
 } from 'react';
 import {
-    TIMER_TYPES,
     DEFAULT_TIMER_SETTINGS,
+    TIMER_TYPES,
 } from '../constants/timerConstants';
+import type { Task } from '../types/task';
 import type {
     TimerAction,
     TimerContextType,
-    TimerState,
     TimerSettings,
+    TimerState,
 } from '../types/timer';
-import { logger } from '../utils/logger';
-import type { Task } from '../types/task';
 
-const timerReducerLogger = logger.createLogger('TimerReducer');
 
 const initialState: TimerState = {
     timeLeft: DEFAULT_TIMER_SETTINGS.workDuration,
