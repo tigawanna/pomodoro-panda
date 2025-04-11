@@ -1,6 +1,6 @@
 :root {
   /* Colors */
-  --color-primary: #d9534f;
+  --color-primary: rgba(217, 83, 79);
   --color-primary-background: rgba(217, 83, 79, 0.1);
   --color-success: #5cb85c;
   --color-info: #428bca;
