@@ -139,14 +139,6 @@ export const TimerProvider: React.FC<{
         const remaining = Math.max(0, state.expectedEndTime - now);
         const newTimeLeft = Math.ceil(remaining / 1000);
 
-        // Only update if time has changed
-        if (newTimeLeft !== state.timeLeft) {
-            dispatch({
-                type: 'UPDATE_TIME_LEFT',
-                payload: { timeLeft: newTimeLeft },
-            });
-        }
-
         // Check if timer completed
         if (newTimeLeft <= 0) {
             dispatch({ type: 'RESET_TIMER' });
@@ -164,6 +156,15 @@ export const TimerProvider: React.FC<{
 
             return;
         }
+        
+        // Only update if time has changed
+        if (newTimeLeft !== state.timeLeft) {
+            dispatch({
+                type: 'UPDATE_TIME_LEFT',
+                payload: { timeLeft: newTimeLeft },
+            });
+        }
+
 
         // Schedule next update
         animationFrameRef.current = requestAnimationFrame(updateTimer);

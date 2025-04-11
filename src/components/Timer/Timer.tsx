@@ -37,8 +37,6 @@ export const Timer: React.FC<TimerProps> = ({
             if (state.timerType === TIMER_TYPES.WORK) {
                 // Mark the pomodoro as completed in the database
                 await handleDone(state);
-                showNotification(state.timerType);
-                setNotification(COMPLETION_MESSAGES[state.timerType]);
             } else {
                 // For break timers, just show notification
                 showNotification(state.timerType);
@@ -79,6 +77,8 @@ export const Timer: React.FC<TimerProps> = ({
             return;
         }
         switchTimer();
+        showNotification(state.timerType);
+        setNotification(COMPLETION_MESSAGES[state.timerType]);
 
         let actualDurationMs = undefined;
 
