@@ -13,6 +13,7 @@ import { useLogger } from './hooks/useLogger';
 import { NotificationState, Task } from './types';
 import { initializeApp } from './utils/appSetup';
 import { tasksDB } from './utils/database';
+import posthog from 'posthog-js';
 
 function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -345,6 +346,7 @@ function App() {
     };
 
     const handleDismissBanner = () => {
+        posthog.capture('stats_banner_dismissed');
         setShowBanner(false);
         // Store the preference in localStorage
         let currentCount = localStorage.getItem('statsBannerDismissed')
