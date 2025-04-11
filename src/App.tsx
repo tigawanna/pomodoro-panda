@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import './App.css';
+import { Banner } from './components/Banner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Notification } from './components/Notification';
 import { TaskInput, TaskList } from './components/Tasks';
@@ -13,20 +14,30 @@ import { NotificationState, Task } from './types';
 import { initializeApp } from './utils/appSetup';
 import { tasksDB } from './utils/database';
 
-
-
 function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
     const [notification, setNotification] = useState<NotificationState | null>(
         null
     );
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
+    const [showBanner, setShowBanner] = useState<boolean>(false);
     const logger = useLogger('App');
 
     // Initialize the app
     useEffect(() => {
         async function initialize() {
             try {
+                // Check if banner was previously dismissed
+                const bannerDismissed = localStorage.getItem('statsBannerDismissed');
+
+                if (!bannerDismissed) {
+                    localStorage.setItem('statsBannerDismissed', '0'); 
+                    setShowBanner(true);
+                } else if (parseInt(bannerDismissed) < 3) {
+                    setShowBanner(true);
+                } else {
+                    setShowBanner(false);
+                }
                 await initializeApp();
             } catch (error) {
                 console.error('Failed to initialize app:', error);
@@ -333,11 +344,43 @@ function App() {
         }
     };
 
+    const handleDismissBanner = () => {
+        setShowBanner(false);
+        // Store the preference in localStorage
+        let currentCount = localStorage.getItem('statsBannerDismissed')
+        if (isNaN(parseInt(currentCount || '0'))) {
+            currentCount = '0';
+        }
+        const newCount = currentCount ? parseInt(currentCount) + 1 : 1;
+        localStorage.setItem('statsBannerDismissed', newCount.toString());
+    };
+
     const activeTask = tasks[0] || null;
 
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
-            <div className="app">
+            <div className={`app ${showBanner ? 'app-with-banner' : ''}`}>
+                {showBanner && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <Banner 
+                            message={
+                                <>
+                                    Currently, completed tasks only show today's items. 
+                                    I'm working on a stats page to show all historical tasks and analytics! 
+                                    <br />
+                                    <br />
+                                    <b>You haven't lost any tasks!</b>
+                                </>
+                            }
+                            type="warning"
+                            onDismiss={handleDismissBanner}
+                        >
+                           
+                               Update 🚀
+                            
+                        </Banner>
+                    </div>
+                )}
                 <TimerProvider>
                     <main className="main-content">
                         <Timer
@@ -371,7 +414,6 @@ function App() {
                 )}
             </div>
         </ErrorBoundary>
-
     );
 }
 

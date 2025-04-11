@@ -4,6 +4,10 @@
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.app-with-banner {
+  padding-top: calc(var(--spacing-sm) * 10 + var(--font-size-sm));
+}
+
 .header {
   display: flex;
   align-items: center;
