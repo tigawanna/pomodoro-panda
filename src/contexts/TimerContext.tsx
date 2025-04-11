@@ -42,7 +42,6 @@ function timerReducer(state: TimerState, action: TimerAction): TimerState {
                 hasStarted: true,
                 startTime: action.payload?.startTime ?? Date.now(),
                 expectedEndTime:
-                    action.payload?.expectedEndTime ??
                     Date.now() + state.timeLeft * 1000,
             };
         case 'PAUSE_TIMER':
