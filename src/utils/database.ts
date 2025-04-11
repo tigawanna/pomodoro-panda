@@ -49,7 +49,7 @@ export const initDB = (): Promise<IDBDatabase> => {
       // Handle version change requests from other tabs
       db.onversionchange = () => {
         db.close();
-        dbLogger.info('Database is outdated, please reload the page.');
+        dbLogger.warn('Database is outdated, please reload the page.');
       };
 
       resolve(db);
@@ -261,6 +261,31 @@ export const tasksDB = {
       request.onerror = () => reject(request.error);
     });
   },
+
+  // Add a method that returns all completed tasks with a filter for only tasks completed today
+  async getCompletedTasksForToday(): Promise<Task[]> {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([COMPLETED_TASKS_STORE], 'readonly');
+      const store = transaction.objectStore(COMPLETED_TASKS_STORE);
+      const index = store.index('endTime');
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+
+      const request = index.getAll();
+      request.onsuccess = () => {
+        const tasks = request.result || [];
+        // the tasks should have the latest first and the oldest last
+        resolve(tasks.filter(task => task.endTime && task.endTime >= startOfDay && task.endTime < endOfDay).sort((a, b) => (b.endTime || 0) - (a.endTime || 0)));
+      };
+      request.onerror = () => reject(request.error);
+    });
+  },
+
 
   async completeOnePomodoro(taskId: string, completedPomodoro: Task): Promise<void> {
     const db = await initDB();

@@ -5,7 +5,7 @@ import { calculateEstimatedCompletion } from '../../utils/timeCalculations';
 import styles from './Tasks.module.css';
 
 export const CompletionIndicator: React.FC<CompletionIndicatorProps> = ({ tasks, settings }) => {
-  const { timeLeft, isRunning, activeTaskId, startTime } = useTimerContext();
+  const { state } = useTimerContext();
   const [completionTime, setCompletionTime] = useState<number>(0);
 
   useEffect(() => {
@@ -15,10 +15,10 @@ export const CompletionIndicator: React.FC<CompletionIndicatorProps> = ({ tasks,
       const newCompletionTime = calculateEstimatedCompletion(
         tasks,
         tasks.length - 1,
-        timeLeft,
-        isRunning,
-        activeTaskId,
-        startTime,
+        state.timeLeft,
+        state.isRunning,
+        state.activeTaskId,
+        state.startTime,
         settings
       );
       setCompletionTime(newCompletionTime);
@@ -28,7 +28,7 @@ export const CompletionIndicator: React.FC<CompletionIndicatorProps> = ({ tasks,
     const interval = setInterval(updateCompletionTime, 1000);
 
     return () => clearInterval(interval);
-  }, [tasks, timeLeft, isRunning, activeTaskId, startTime, settings]);
+  }, [tasks, state, settings]);
 
   if (tasks.length === 0) return null;
 

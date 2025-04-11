@@ -1,30 +1,19 @@
 import { useEffect, useState } from 'react';
-import './App.css';
-import { TaskInput, TaskList } from './components/Tasks';
-import { Timer } from './components/Timer';
-import { Notification } from './components/Notification';
-import { Task, NotificationState } from './types';
-import { TimerType, DEFAULT_TIMER_SETTINGS } from './constants/timerConstants';
-import { tasksDB } from './utils/database';
 import { v4 as uuidv4 } from 'uuid';
-import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
-import { TimerProvider } from './contexts/TimerContext';
-import { initializeApp } from './utils/appSetup';
+import './App.css';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { Notification } from './components/Notification';
+import { TaskInput, TaskList } from './components/Tasks';
+import { CompletedTasksList } from './components/Tasks/CompletedTasksList';
+import { Timer } from './components/Timer';
+import { DEFAULT_TIMER_SETTINGS } from './constants/timerConstants';
+import { TimerProvider } from './contexts/TimerContext';
 import { useLogger } from './hooks/useLogger';
+import { NotificationState, Task } from './types';
+import { initializeApp } from './utils/appSetup';
+import { tasksDB } from './utils/database';
 
-export interface TimerControlsProps {
-    isPaused: boolean;
-    hasStarted: boolean;
-    onStart: () => void;
-    onResume: () => void;
-    onPause: () => void;
-    onStop: () => void;
-    onDone: () => void;
-    onSkip?: () => void;
-    disableWorkTimer?: boolean;
-    timerType: TimerType;
-}
+
 
 function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -47,37 +36,39 @@ function App() {
         initialize();
     }, []);
 
+    useEffect(() => {
+        async function loadTasks() {
+            try {
+                const loadedTasks = await tasksDB.getAll();
+                setTasks(loadedTasks);
+            } catch (error) {
+                logger.error('Failed to load tasks:', error);
+                setNotification({
+                    message: 'Failed to load tasks',
+                    type: 'error',
+                });
+            }
+        }
+
+        loadTasks();
+    }, [logger]);
 
     useEffect(() => {
-        loadTasks();
+        async function loadCompletedTasks() {
+            try {
+                const tasks = await tasksDB.getCompletedTasksForToday();
+                setCompletedTasks(tasks);
+            } catch (error) {
+                logger.error('Failed to load completed tasks:', error);
+                setNotification({
+                    message: 'Failed to load completed tasks',
+                    type: 'error',
+                });
+            }
+        }
+
         loadCompletedTasks();
-    }, []);
-
-    const loadTasks = async () => {
-        try {
-            const loadedTasks = await tasksDB.getAll();
-            setTasks(loadedTasks);
-        } catch (error) {
-            logger.error('Failed to load tasks:', error);
-            setNotification({
-                message: 'Failed to load tasks',
-                type: 'error',
-            });
-        }
-    };
-
-    const loadCompletedTasks = async () => {
-        try {
-            const tasks = await tasksDB.getCompletedTasks();
-            setCompletedTasks(tasks);
-        } catch (error) {
-            logger.error('Failed to load completed tasks:', error);
-            setNotification({
-                message: 'Failed to load completed tasks',
-                type: 'error',
-            });
-        }
-    };
+    }, [logger]);
 
     const handleAddTask = async (category: string, description: string) => {
         const newTask: Task = {
@@ -188,14 +179,14 @@ function App() {
     };
 
     const handleTaskComplete = async () => {
-        logger.info('Task complete - updating lists');
         try {
             const [tasks, completedTasks] = await Promise.all([
                 tasksDB.getAll(),
-                tasksDB.getCompletedTasks(),
+                tasksDB.getCompletedTasksForToday(),
             ]);
             setTasks(tasks);
             setCompletedTasks(completedTasks);
+
         } catch (error) {
             logger.error('Error updating lists after task completion:', error);
             setNotification({
@@ -265,11 +256,6 @@ function App() {
                 duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000, // Use constant instead of hardcoded value
                 completed: true,
             };
-
-            logger.info('Marking task as done:', {
-                taskId,
-                completedTask,
-            });
 
             // Add to completed tasks and remove from active tasks
             await tasksDB.completeOnePomodoro(taskId, completedTask);

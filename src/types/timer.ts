@@ -17,8 +17,9 @@ export interface TimerState {
   timerType: TimerType;
   activeTaskId: string | null;
   startTime: number | null;
-  expectedEndTime: number | null;
+  expectedEndTime: number | undefined;
   sessionsCompleted: number;
+  hasCompleted: boolean;
 }
 
 // Context-specific interface that extends the base state
@@ -26,7 +27,7 @@ export interface TimerState {
 // Define action types
 export type TimerAction =
   | { type: 'UPDATE_TIMER_STATE'; payload: Partial<TimerState> }
-  | { type: 'START_TIMER'; payload?: { startTime?: number; expectedEndTime?: number } }
+  | { type: 'START_TIMER'; payload?: { startTime?: number; expectedEndTime?: number; activeTaskId?: string } }
   | { type: 'PAUSE_TIMER' }
   | { type: 'RESET_TIMER' }
   | { type: 'SWITCH_TIMER'; payload: { timerType: TimerType; timeLeft: number } }
@@ -37,12 +38,12 @@ export type TimerAction =
 export interface TimerContextType {
   state: TimerState;
   dispatch: React.Dispatch<TimerAction>;
-  startTimer: () => void;
+  startTimer: (task: Task) => void;
   pauseTimer: () => void;
   resetTimer: () => void;
   switchTimer: () => void;
   updateTimerState: (newState: Partial<TimerState>) => void;
-  setOnComplete: (callback: (timerType: string) => void) => void;
+  setOnComplete: (callback: (state: TimerState) => void) => void;
   settings: TimerSettings;
 }
 export interface TimerContextState extends Omit<TimerState, 'sessionsCompleted'> {
@@ -57,7 +58,7 @@ export type TimerStateRef = Omit<TimerState, 'sessionsCompleted'>;
 
 // Component props
 export interface TimerProps {
-  selectedTask: Task | null;
+  selectedTask: Task;
   onTaskComplete: () => Promise<void>;
 }
 
@@ -80,7 +81,7 @@ export interface TimerControlsProps {
 
 // Hook props
 export interface UseTimerProps {
-  onComplete?: (type: TimerType) => void;
+  onComplete?: (state: TimerState) => void;
   settings?: TimerSettings;
 }
 

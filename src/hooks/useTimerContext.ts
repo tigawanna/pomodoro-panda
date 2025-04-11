@@ -20,15 +20,8 @@ export default function useTimerContext() {
   
   return {
     // State properties
-    timeLeft: state.timeLeft,
-    isRunning: state.isRunning,
-    hasStarted: state.hasStarted,
-    timerType: state.timerType,
-    activeTaskId: state.activeTaskId,
-    startTime: state.startTime,
-    expectedEndTime: state.expectedEndTime,
-    sessionsCompleted: state.sessionsCompleted,
-    
+    state,
+
     // Actions
     startTimer,
     pauseTimer,

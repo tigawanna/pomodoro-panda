@@ -17,7 +17,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   onMarkAsDone,
   className,
 }) => {
-  const { timeLeft, isRunning, startTime } = useTimerContext();
+  const { state } = useTimerContext();
   const [estimatedTime, setEstimatedTime] = useState<number>(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -42,10 +42,10 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       const newEstimatedTime = calculateEstimatedCompletion(
         [task],
         0,
-        isActive ? timeLeft : null,
-        isRunning,
+        isActive ? state.timeLeft : null,
+        isActive ? state.isRunning : undefined,
         isActive ? task.id : null,
-        startTime
+        state.startTime
       );
       setEstimatedTime(newEstimatedTime);
     };
@@ -53,7 +53,7 @@ export const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
     updateEstimatedTime();
     const interval = setInterval(updateEstimatedTime, 1000);
     return () => clearInterval(interval);
-  }, [task, isActive, timeLeft, isRunning, startTime]);
+  }, [task, isActive, state]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

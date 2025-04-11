@@ -5,8 +5,9 @@ import {
     TIMER_TITLES,
     TIMER_TYPES,
 } from '../../constants/timerConstants';
+import { useLogger } from '../../hooks/useLogger';
 import { useTimer } from '../../hooks/useTimer';
-import type { TimerProps } from '../../types/timer';
+import type { TimerProps, TimerState } from '../../types/timer';
 import { tasksDB } from '../../utils/database';
 import {
     initializeNotifications,
@@ -16,7 +17,6 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
-import { useLogger } from '../../hooks/useLogger';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -24,29 +24,23 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
     const logger = useLogger('Timer');
-    
+
     const {
-        timeLeft,
-        isRunning,
-        hasStarted,
-        timerType,
-        sessionsCompleted,
+        state,
         start,
         pause,
         reset,
         switchTimer,
         settings,
     } = useTimer({
-        onComplete: async (type) => {
-            if (type === TIMER_TYPES.WORK) {
+        onComplete: async (state: TimerState) => {
+            if (state.timerType === TIMER_TYPES.WORK) {
                 // Mark the pomodoro as completed in the database
-                await handleDone();
-                showNotification(type);
-                setNotification(COMPLETION_MESSAGES[type]);
+                await handleDone(state);
             } else {
                 // For break timers, just show notification
-                showNotification(type);
-                setNotification(COMPLETION_MESSAGES[type]);
+                showNotification(state.timerType);
+                setNotification(COMPLETION_MESSAGES[state.timerType]);
             }
         },
     });
@@ -54,7 +48,7 @@ export const Timer: React.FC<TimerProps> = ({
     const canStartWorkTimer = selectedTask !== null;
 
     const handleStart = () => {
-        start();
+        start(selectedTask);
     };
 
     const handlePause = () => {
@@ -62,7 +56,7 @@ export const Timer: React.FC<TimerProps> = ({
     };
 
     const handleResume = () => {
-        start();
+        start(selectedTask);
     };
 
     const handleStop = () => {
@@ -76,42 +70,44 @@ export const Timer: React.FC<TimerProps> = ({
     const showInAppNotification = (message: string) => {
         setNotification(message);
     };
+    const handleDone = async (timerState: TimerState) => {
 
-    const handleDone = async () => {
-        if (!selectedTask) return;
+        if (!timerState) {
+            return;
+        }
+        switchTimer();
+        showNotification(state.timerType);
+        setNotification(COMPLETION_MESSAGES[state.timerType]);
 
-        // Calculate actual duration based on time spent
-        const totalDurationMs = settings.workDuration * 1000; // Full duration in ms
-        const timeLeftMs = timeLeft * 1000; // Remaining time in ms
-        const actualDurationMs = hasStarted
-            ? totalDurationMs - timeLeftMs
-            : totalDurationMs;
+        let actualDurationMs = undefined;
+
+        if (timerState.hasCompleted) {
+            actualDurationMs = settings.workDuration * 1000;
+        } else if (!timerState.hasCompleted && timerState.hasStarted) {
+            // Calculate actual duration based on time spent
+            const totalDurationMs = settings.workDuration * 1000; // Full duration in ms
+            const timeLeftMs = state.timeLeft * 1000; // Remaining time in ms
+            actualDurationMs = totalDurationMs - timeLeftMs;
+        }
 
         const completedTask = {
             ...selectedTask,
-            id: `completed-${selectedTask.id}-${Date.now()}`,
-            endTime: Date.now(),
+            id: `completed-${timerState.activeTaskId}-${Date.now()}`,
+            endTime: timerState.expectedEndTime,
             duration: actualDurationMs,
             completed: true,
             pomodoros: 1,
         };
 
-        logger.info('Attempting to complete pomodoro:', {
-            taskId: selectedTask.id,
-            completedTask,
-            actualDuration: `${Math.round(actualDurationMs / 60000)}m`,
-            timeSpent: hasStarted
-                ? `${Math.round((totalDurationMs - timeLeftMs) / 60000)}m`
-                : 'none',
-        });
-
         try {
-            await tasksDB.completeOnePomodoro(selectedTask.id, completedTask);
-            logger.info('Pomodoro completed successfully');
+            if (!timerState.activeTaskId) {
+                throw new Error('No task id found');
+            }
+            await tasksDB.completeOnePomodoro(timerState.activeTaskId, completedTask);
             await onTaskComplete();
-            showInAppNotification(COMPLETION_MESSAGES[timerType]);
+            showInAppNotification(COMPLETION_MESSAGES[state.timerType]);
         } catch (error) {
-            logger.error('Failed to complete task:', error);
+            logger.error('Failed to complete task:', error instanceof Error ? error.message : error);
             showInAppNotification(ERROR_MESSAGES.TASK_COMPLETE_FAILED);
         }
     };
@@ -121,14 +117,14 @@ export const Timer: React.FC<TimerProps> = ({
     }, []);
 
     const getTimerTitle = () => {
-        const session = Math.floor(sessionsCompleted) + 1;
-        const title = TIMER_TITLES[timerType];
+        const session = Math.floor(state.sessionsCompleted) + 1;
+        const title = TIMER_TITLES[state.timerType];
         return typeof title === 'function' ? title(session) : title;
     };
 
     return (
         <>
-            <div className={`${styles.timerContainer} ${styles[timerType]}`}>
+            <div className={`${styles.timerContainer} ${styles[state.timerType]}`}>
                 <div className={styles.timerHeader}>
                     <div className={styles.headerLeft}>
                         <span className={styles.comingSoon}>⚙️</span>
@@ -137,7 +133,7 @@ export const Timer: React.FC<TimerProps> = ({
                     <div>{getTimerTitle()}</div>
                 </div>
                 <div className={styles.timerDisplay}>
-                    <TimerDisplay timeLeft={timeLeft} />
+                    <TimerDisplay timeLeft={state.timeLeft} />
                 </div>
                 <div className={styles.taskName}>
                     {selectedTask
@@ -145,16 +141,16 @@ export const Timer: React.FC<TimerProps> = ({
                         : 'No task selected'}
                 </div>
                 <TimerControls
-                    isPaused={!isRunning && hasStarted}
-                    hasStarted={hasStarted}
+                    isPaused={!state.isRunning && state.hasStarted}
+                    hasStarted={state.hasStarted}
                     onStart={handleStart}
                     onResume={handleResume}
                     onPause={handlePause}
                     onStop={handleStop}
-                    onDone={handleDone}
+                    onDone={() => handleDone(state)}
                     onSkip={handleSkip}
                     disableWorkTimer={!canStartWorkTimer}
-                    timerType={timerType}
+                    timerType={state.timerType}
                 />
             </div>
             {notification && (

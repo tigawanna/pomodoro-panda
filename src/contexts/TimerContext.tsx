@@ -1,20 +1,22 @@
 import React, {
     createContext,
-    useReducer,
-    useRef,
     useCallback,
     useEffect,
+    useReducer,
+    useRef,
 } from 'react';
 import {
-    TIMER_TYPES,
     DEFAULT_TIMER_SETTINGS,
+    TIMER_TYPES,
 } from '../constants/timerConstants';
+import type { Task } from '../types/task';
 import type {
     TimerAction,
     TimerContextType,
-    TimerState,
     TimerSettings,
+    TimerState,
 } from '../types/timer';
+
 
 const initialState: TimerState = {
     timeLeft: DEFAULT_TIMER_SETTINGS.workDuration,
@@ -23,8 +25,9 @@ const initialState: TimerState = {
     timerType: TIMER_TYPES.WORK,
     activeTaskId: null,
     startTime: null,
-    expectedEndTime: null,
+    expectedEndTime: undefined,
     sessionsCompleted: 0,
+    hasCompleted: false,
 };
 
 function timerReducer(state: TimerState, action: TimerAction): TimerState {
@@ -34,11 +37,11 @@ function timerReducer(state: TimerState, action: TimerAction): TimerState {
         case 'START_TIMER':
             return {
                 ...state,
+                activeTaskId: action.payload?.activeTaskId ?? null,
                 isRunning: true,
                 hasStarted: true,
                 startTime: action.payload?.startTime ?? Date.now(),
                 expectedEndTime:
-                    action.payload?.expectedEndTime ??
                     Date.now() + state.timeLeft * 1000,
             };
         case 'PAUSE_TIMER':
@@ -61,7 +64,7 @@ function timerReducer(state: TimerState, action: TimerAction): TimerState {
                 isRunning: false,
                 hasStarted: false,
                 startTime: null,
-                expectedEndTime: null,
+                expectedEndTime: undefined,
                 // Increment sessionsCompleted if switching from WORK to a break type
                 sessionsCompleted:
                     state.timerType === TIMER_TYPES.WORK &&
@@ -94,11 +97,11 @@ export const TimerProvider: React.FC<{
     const animationFrameRef = useRef<number | undefined>(undefined);
 
     // Callback for timer completion
-    const onCompleteRef = useRef<((timerType: string) => void) | null>(null);
+    const onCompleteRef = useRef<((state: TimerState) => void) | null>(null);
 
     // Set callback for timer completion
     const setOnComplete = useCallback(
-        (callback: (timerType: string) => void) => {
+        (callback: (state: TimerState) => void) => {
             onCompleteRef.current = callback;
         },
         []
@@ -108,6 +111,7 @@ export const TimerProvider: React.FC<{
     const getNextTimer = useCallback(() => {
         if (state.timerType === TIMER_TYPES.WORK) {
             const nextSessions = state.sessionsCompleted + 1;
+
             if (nextSessions % settings.sessionsUntilLongBreak === 0) {
                 return {
                     type: TIMER_TYPES.LONG_BREAK,
@@ -134,6 +138,24 @@ export const TimerProvider: React.FC<{
         const remaining = Math.max(0, state.expectedEndTime - now);
         const newTimeLeft = Math.ceil(remaining / 1000);
 
+        // Check if timer completed
+        if (newTimeLeft <= 0) {
+            dispatch({ type: 'RESET_TIMER' });
+            const finalState = {
+                ...state,
+                hasCompleted: true,
+                isRunning: false,
+                timeLeft: 0,
+            }
+
+            // Call completion callback
+            if (onCompleteRef.current) {
+                onCompleteRef.current(finalState);
+            }
+
+            return;
+        }
+        
         // Only update if time has changed
         if (newTimeLeft !== state.timeLeft) {
             dispatch({
@@ -142,38 +164,10 @@ export const TimerProvider: React.FC<{
             });
         }
 
-        // Check if timer completed
-        if (newTimeLeft <= 0) {
-            dispatch({ type: 'PAUSE_TIMER' });
-
-            // Call completion callback
-            if (onCompleteRef.current) {
-                onCompleteRef.current(state.timerType);
-            }
-
-            // Get next timer type and duration
-            const nextTimer = getNextTimer();
-            dispatch({
-                type: 'SWITCH_TIMER',
-                payload: {
-                    timerType: nextTimer.type,
-                    timeLeft: nextTimer.duration,
-                },
-            });
-
-            return;
-        }
 
         // Schedule next update
         animationFrameRef.current = requestAnimationFrame(updateTimer);
-    }, [
-        state.isRunning,
-        state.timeLeft,
-        state.startTime,
-        state.expectedEndTime,
-        state.timerType,
-        getNextTimer,
-    ]);
+    }, [state]);
 
     // Start animation frame when running
     useEffect(() => {
@@ -189,13 +183,14 @@ export const TimerProvider: React.FC<{
     }, [state.isRunning, updateTimer]);
 
     // Action creators
-    const startTimer = useCallback(() => {
+    const startTimer = useCallback((task: Task) => {
         const now = Date.now();
         dispatch({
             type: 'START_TIMER',
             payload: {
                 startTime: now,
                 expectedEndTime: now + state.timeLeft * 1000,
+                activeTaskId: task.id,
             },
         });
     }, [state.timeLeft]);
