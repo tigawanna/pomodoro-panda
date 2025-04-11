@@ -17,6 +17,7 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
+import posthog from 'posthog-js';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -71,16 +72,16 @@ export const Timer: React.FC<TimerProps> = ({
         setNotification(message);
     };
     const handleDone = async (timerState: TimerState) => {
-
+        
         if (!timerState) {
             return;
         }
         switchTimer();
         showNotification(state.timerType);
         setNotification(COMPLETION_MESSAGES[state.timerType]);
-
+        
         let actualDurationMs = undefined;
-
+        
         if (timerState.hasCompleted) {
             actualDurationMs = settings.workDuration * 1000;
         } else if (!timerState.hasCompleted && timerState.hasStarted) {
@@ -105,6 +106,11 @@ export const Timer: React.FC<TimerProps> = ({
             }
             await tasksDB.completeOnePomodoro(timerState.activeTaskId, completedTask);
             await onTaskComplete();
+            posthog.capture('timer_completed', {
+                timer_type: timerState.timerType,
+                task_id: timerState.activeTaskId,
+                duration: actualDurationMs,
+            });
             showInAppNotification(COMPLETION_MESSAGES[state.timerType]);
         } catch (error) {
             logger.error('Failed to complete task:', error instanceof Error ? error.message : error);
