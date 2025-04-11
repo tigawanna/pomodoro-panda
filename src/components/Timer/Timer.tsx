@@ -70,7 +70,6 @@ export const Timer: React.FC<TimerProps> = ({
     const showInAppNotification = (message: string) => {
         setNotification(message);
     };
-    // pass an optional task as a prop
     const handleDone = async (timerState: TimerState) => {
 
         if (!timerState) {
