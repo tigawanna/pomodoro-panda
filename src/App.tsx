@@ -36,37 +36,39 @@ function App() {
         initialize();
     }, []);
 
+    useEffect(() => {
+        async function loadTasks() {
+            try {
+                const loadedTasks = await tasksDB.getAll();
+                setTasks(loadedTasks);
+            } catch (error) {
+                logger.error('Failed to load tasks:', error);
+                setNotification({
+                    message: 'Failed to load tasks',
+                    type: 'error',
+                });
+            }
+        }
+
+        loadTasks();
+    }, [logger]);
 
     useEffect(() => {
-        loadTasks();
+        async function loadCompletedTasks() {
+            try {
+                const tasks = await tasksDB.getCompletedTasksForToday();
+                setCompletedTasks(tasks);
+            } catch (error) {
+                logger.error('Failed to load completed tasks:', error);
+                setNotification({
+                    message: 'Failed to load completed tasks',
+                    type: 'error',
+                });
+            }
+        }
+
         loadCompletedTasks();
-    }, []);
-
-    const loadTasks = async () => {
-        try {
-            const loadedTasks = await tasksDB.getAll();
-            setTasks(loadedTasks);
-        } catch (error) {
-            logger.error('Failed to load tasks:', error);
-            setNotification({
-                message: 'Failed to load tasks',
-                type: 'error',
-            });
-        }
-    };
-
-    const loadCompletedTasks = async () => {
-        try {
-            const tasks = await tasksDB.getCompletedTasksForToday();
-            setCompletedTasks(tasks);
-        } catch (error) {
-            logger.error('Failed to load completed tasks:', error);
-            setNotification({
-                message: 'Failed to load completed tasks',
-                type: 'error',
-            });
-        }
-    };
+    }, [logger]);
 
     const handleAddTask = async (category: string, description: string) => {
         const newTask: Task = {

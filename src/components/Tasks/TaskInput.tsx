@@ -19,6 +19,7 @@ export const TaskInput: React.FC<TaskInputProps> = ({
   });
 
   // Only set initial values once when entering edit mode
+  // TODO: INVESTIGATE: Why we can't add initialValues to the dependency array
   useEffect(() => {
     if (isEditing && initialValues) {
       setFormState({
