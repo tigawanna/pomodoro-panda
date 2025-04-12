@@ -13,7 +13,7 @@ import { useLogger } from './hooks/useLogger';
 import { NotificationState, Task } from './types';
 import { initializeApp } from './utils/appSetup';
 import { tasksDB } from './utils/database';
-import posthog from 'posthog-js';
+import { usePostHog } from 'posthog-js/react';
 
 function App() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -23,6 +23,14 @@ function App() {
     const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
     const [showBanner, setShowBanner] = useState<boolean>(false);
     const logger = useLogger('App');
+    const posthog = usePostHog()
+
+    useEffect(() => {
+        if(posthog) {
+            logger.info('PostHog successfully initialized');
+            posthog.capture('app_loaded');
+        }
+    }, [logger, posthog]);
 
     // Initialize the app
     useEffect(() => {

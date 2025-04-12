@@ -17,7 +17,7 @@ import { Notification } from '../Notification';
 import styles from './Timer.module.css';
 import { TimerControls } from './TimerControls';
 import { TimerDisplay } from './TimerDisplay';
-import posthog from 'posthog-js';
+import { usePostHog } from 'posthog-js/react';
 
 export const Timer: React.FC<TimerProps> = ({
     selectedTask,
@@ -25,6 +25,7 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
     const logger = useLogger('Timer');
+    const posthog = usePostHog()
 
     const {
         state,
