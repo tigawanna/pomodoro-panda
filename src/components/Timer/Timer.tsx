@@ -51,6 +51,9 @@ export const Timer: React.FC<TimerProps> = ({
 
     const handleStart = () => {
         start(selectedTask);
+        posthog.capture('timer_started', {
+            timer_type: state.timerType,
+        });
     };
 
     const handlePause = () => {
