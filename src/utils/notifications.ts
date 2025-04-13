@@ -1,12 +1,11 @@
-import { NOTIFICATION_MESSAGES } from '../constants/timerConstants';
 import type { TimerType } from '../constants/timerConstants';
-import { logger } from './logger';
+import { NOTIFICATION_MESSAGES } from '../constants/timerConstants';
 
-const notificationLogger = logger.createLogger('Notifications');
+
+// TODO: remove all notification logic and rework
 
 export const initializeNotifications = async () => {
   if (!("Notification" in window)) {
-    notificationLogger.info("This browser does not support notifications");
     return false;
   }
 
@@ -23,13 +22,10 @@ export const initializeNotifications = async () => {
 };
 
 export const showNotification = (timerType: TimerType) => {
-  notificationLogger.info('Notification permission:', Notification.permission);
-  notificationLogger.info('Window focused:', document.hasFocus());
 
   if (Notification.permission === "granted") {
     new Notification("Pomodoro Timer", {
       body: NOTIFICATION_MESSAGES[timerType],
     });
-    notificationLogger.info('Browser notification sent');
   }
 }; 

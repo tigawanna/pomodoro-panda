@@ -12,6 +12,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
   onStop,
   onDone,
   onSkip,
+  onBreak,
   disableWorkTimer = false,
   timerType
 }) => {
@@ -20,7 +21,7 @@ export const TimerControls: React.FC<TimerControlsProps> = ({
       return (
         <button 
           className={`${styles.controlButton} ${(disableWorkTimer && timerType === TIMER_TYPES.WORK) ? styles.disabled : ''}`} 
-          onClick={onStart}
+          onClick={(timerType === TIMER_TYPES.BREAK || timerType === TIMER_TYPES.LONG_BREAK) ? onBreak : onStart}
           disabled={disableWorkTimer && timerType === TIMER_TYPES.WORK}
         >
           <span>START</span>

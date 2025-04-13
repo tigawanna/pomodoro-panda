@@ -273,7 +273,7 @@ function App() {
                 ...task,
                 id: `completed-${task.id}-${Date.now()}`,
                 endTime: Date.now(),
-                duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000, // Use constant instead of hardcoded value
+                duration: DEFAULT_TIMER_SETTINGS.workDuration,
                 completed: true,
             };
 

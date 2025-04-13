@@ -8,6 +8,7 @@ import React, {
 import {
     DEFAULT_TIMER_SETTINGS,
     TIMER_TYPES,
+    type TimerType,
 } from '../constants/timerConstants';
 import type { Task } from '../types/task';
 import type {
@@ -16,7 +17,6 @@ import type {
     TimerSettings,
     TimerState,
 } from '../types/timer';
-
 
 const initialState: TimerState = {
     timeLeft: DEFAULT_TIMER_SETTINGS.workDuration,
@@ -30,10 +30,23 @@ const initialState: TimerState = {
     hasCompleted: false,
 };
 
+
 function timerReducer(state: TimerState, action: TimerAction): TimerState {
     switch (action.type) {
         case 'UPDATE_TIMER_STATE':
             return { ...state, ...action.payload };
+        case 'START_BREAK':
+            return {
+                ...state,
+                timeLeft: action.payload.duration,
+                isRunning: true,
+                hasStarted: true,
+                timerType: action.payload.timerType,
+                activeTaskId: null,
+                startTime: action.payload.startTime,
+                expectedEndTime: action.payload.expectedEndTime,
+                hasCompleted: false,
+            };
         case 'START_TIMER':
             return {
                 ...state,
@@ -41,37 +54,16 @@ function timerReducer(state: TimerState, action: TimerAction): TimerState {
                 isRunning: true,
                 hasStarted: true,
                 startTime: action.payload?.startTime ?? Date.now(),
-                expectedEndTime:
-                    Date.now() + state.timeLeft * 1000,
+                expectedEndTime: Date.now() + state.timeLeft,
             };
+
         case 'PAUSE_TIMER':
             return {
                 ...state,
                 isRunning: false,
                 // Keep timeLeft as is
             };
-        case 'RESET_TIMER':
-            return {
-                ...initialState,
-                timerType: TIMER_TYPES.WORK,
-                timeLeft: DEFAULT_TIMER_SETTINGS.workDuration,
-            };
-        case 'SWITCH_TIMER':
-            return {
-                ...state,
-                timerType: action.payload.timerType,
-                timeLeft: action.payload.timeLeft,
-                isRunning: false,
-                hasStarted: false,
-                startTime: null,
-                expectedEndTime: undefined,
-                // Increment sessionsCompleted if switching from WORK to a break type
-                sessionsCompleted:
-                    state.timerType === TIMER_TYPES.WORK &&
-                    action.payload.timerType !== TIMER_TYPES.WORK
-                        ? state.sessionsCompleted + 1
-                        : state.sessionsCompleted,
-            };
+
         case 'UPDATE_TIME_LEFT':
             return {
                 ...state,
@@ -88,10 +80,7 @@ export const TimerProvider: React.FC<{
     children: React.ReactNode;
     settings?: TimerSettings;
 }> = ({ children, settings = DEFAULT_TIMER_SETTINGS }) => {
-    const [state, dispatch] = useReducer(timerReducer, {
-        ...initialState,
-        timeLeft: settings.workDuration,
-    });
+    const [state, dispatch] = useReducer(timerReducer, initialState);
 
     // Animation frame reference
     const animationFrameRef = useRef<number | undefined>(undefined);
@@ -136,17 +125,16 @@ export const TimerProvider: React.FC<{
 
         const now = Date.now();
         const remaining = Math.max(0, state.expectedEndTime - now);
-        const newTimeLeft = Math.ceil(remaining / 1000);
+        const newTimeLeft = Math.ceil(remaining);
 
         // Check if timer completed
         if (newTimeLeft <= 0) {
-            dispatch({ type: 'RESET_TIMER' });
             const finalState = {
                 ...state,
                 hasCompleted: true,
                 isRunning: false,
                 timeLeft: 0,
-            }
+            };
 
             // Call completion callback
             if (onCompleteRef.current) {
@@ -155,7 +143,7 @@ export const TimerProvider: React.FC<{
 
             return;
         }
-        
+
         // Only update if time has changed
         if (newTimeLeft !== state.timeLeft) {
             dispatch({
@@ -163,7 +151,6 @@ export const TimerProvider: React.FC<{
                 payload: { timeLeft: newTimeLeft },
             });
         }
-
 
         // Schedule next update
         animationFrameRef.current = requestAnimationFrame(updateTimer);
@@ -183,49 +170,134 @@ export const TimerProvider: React.FC<{
     }, [state.isRunning, updateTimer]);
 
     // Action creators
-    const startTimer = useCallback((task: Task) => {
-        const now = Date.now();
-        dispatch({
-            type: 'START_TIMER',
-            payload: {
-                startTime: now,
-                expectedEndTime: now + state.timeLeft * 1000,
-                activeTaskId: task.id,
-            },
-        });
-    }, [state.timeLeft]);
+    const startTimer = useCallback(
+        (task: Task) => {
+            const now = Date.now();
+            dispatch({
+                type: 'START_TIMER',
+                payload: {
+                    startTime: now,
+                    expectedEndTime: now + state.timeLeft,
+                    activeTaskId: task.id,
+                },
+            });
+        },
+        [state.timeLeft]
+    );
+
+    const startBreak = useCallback(
+        (breakType: TimerType) => {
+            const now = Date.now();
+            if (breakType === TIMER_TYPES.BREAK) {
+                dispatch({
+                    type: 'START_BREAK',
+                    payload: {
+                        startTime: now,
+                        expectedEndTime: now + settings.breakDuration ,
+                        duration: settings.breakDuration ,
+                        timerType: TIMER_TYPES.BREAK,
+                    },
+                });
+            } else if (breakType === TIMER_TYPES.LONG_BREAK) {
+                dispatch({
+                    type: 'START_BREAK',
+                    payload: {
+                        startTime: now,
+                        expectedEndTime:
+                            now + settings.longBreakDuration ,
+                        duration: settings.longBreakDuration ,
+                        timerType: TIMER_TYPES.LONG_BREAK,
+                    },
+                });
+            }
+        },
+        [settings.breakDuration, settings.longBreakDuration]
+    );
 
     const pauseTimer = useCallback(() => {
         dispatch({ type: 'PAUSE_TIMER' });
     }, []);
 
+    /**
+     * This function is used to reset the timer.
+     * It resets uses the update timer state action to reset:
+     * - isRunning to false
+     * - hasStarted to false
+     * - activeTaskId to null
+     * - startTime to null
+     * - expectedEndTime to undefined
+     * - hasCompleted to false
+     */
     const resetTimer = useCallback(() => {
-        dispatch({ type: 'RESET_TIMER' });
-    }, []);
+        const payload: Partial<TimerState> = {
+            isRunning: false,
+            hasStarted: false,
+            activeTaskId: null,
+            startTime: null,
+            expectedEndTime: undefined,
+            hasCompleted: false,
+        };
+        if (state.timerType === TIMER_TYPES.WORK) {
+            payload.timeLeft = settings.workDuration;
+        } else if (state.timerType === TIMER_TYPES.BREAK) {
+            payload.timeLeft = settings.breakDuration;
+        } else if (state.timerType === TIMER_TYPES.LONG_BREAK) {
+            payload.timeLeft = settings.longBreakDuration;
+        }
+        dispatch({ type: 'UPDATE_TIMER_STATE', payload: payload });
+    }, [settings.breakDuration, settings.longBreakDuration, settings.workDuration, state.timerType]);
 
+    /**
+     * This function is used to switch the timer to the next timer type.
+     * It updates the timer state to the next timer type and resets the timer.
+     * It also updates the sessions completed if the timer is switched from WORK to a break type.
+     */
     const switchTimer = useCallback(() => {
         const nextTimer = getNextTimer();
-        dispatch({
-            type: 'SWITCH_TIMER',
-            payload: {
-                timerType: nextTimer.type,
-                timeLeft: nextTimer.duration,
-            },
-        });
-    }, [getNextTimer]);
 
-    const updateTimerState = useCallback((newState: Partial<TimerState>) => {
-        dispatch({ type: 'UPDATE_TIMER_STATE', payload: newState });
-    }, []);
+        const payload: Partial<TimerState> = {
+            isRunning: false,
+            hasStarted: false,
+            activeTaskId: null,
+            startTime: null,
+            expectedEndTime: undefined,
+            hasCompleted: false,
+        };
+
+        if (nextTimer.type === TIMER_TYPES.WORK) {
+            payload.timeLeft = settings.workDuration;
+            payload.timerType = TIMER_TYPES.WORK;
+            payload.sessionsCompleted = state.sessionsCompleted + 1;
+        } else if (nextTimer.type === TIMER_TYPES.BREAK) {
+            payload.timeLeft = settings.breakDuration;
+            payload.timerType = TIMER_TYPES.BREAK;
+            payload.sessionsCompleted = state.sessionsCompleted;
+        } else if (nextTimer.type === TIMER_TYPES.LONG_BREAK) {
+            payload.timeLeft = settings.longBreakDuration;
+            payload.timerType = TIMER_TYPES.LONG_BREAK;
+            payload.sessionsCompleted = state.sessionsCompleted;
+        }
+
+        dispatch({
+            type: 'UPDATE_TIMER_STATE',
+            payload: payload,
+        });
+    }, [
+        getNextTimer,
+        settings.breakDuration,
+        settings.longBreakDuration,
+        settings.workDuration,
+        state.sessionsCompleted,
+    ]);
 
     const value = {
         state,
+        startBreak,
         dispatch,
         startTimer,
         pauseTimer,
         resetTimer,
         switchTimer,
-        updateTimerState,
         setOnComplete,
         settings,
     };

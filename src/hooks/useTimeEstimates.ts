@@ -27,15 +27,15 @@ export const useTimeEstimates = (
 
       if (isActive) {
         // For active task, use remaining time if timer is running
-        taskDuration = isTimerRunning ? currentTimeLeft * 1000 : settings.workDuration * 1000;
+        taskDuration = isTimerRunning ? currentTimeLeft  : settings.workDuration ;
       } else {
         // For non-active tasks, use full duration
-        taskDuration = (task.pomodoros || 1) * settings.workDuration * 1000;
+        taskDuration = (task.pomodoros || 1) * settings.workDuration ;
       }
 
       // Add break times
       if (index < tasks.length - 1) {
-        taskDuration += settings.breakDuration * 1000;
+        taskDuration += settings.breakDuration ;
       }
 
       const completionTime = accumulatedTime + taskDuration;

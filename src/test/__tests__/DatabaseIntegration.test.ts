@@ -689,7 +689,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime - 2000}`,
       completed: true,
       endTime: baseTime - 2000,
-      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration ,
       pomodoros: 1
     };
 
@@ -698,7 +698,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime - 1000}`,
       completed: true,
       endTime: baseTime - 1000,
-      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration ,
       pomodoros: 1
     };
 
@@ -707,7 +707,7 @@ describe('Database Integration', () => {
       id: `completed-${originalTaskId}-${baseTime}`,
       completed: true,
       endTime: baseTime,
-      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000,
+      duration: DEFAULT_TIMER_SETTINGS.workDuration ,
       pomodoros: 1
     };
 
@@ -781,7 +781,7 @@ describe('Database Integration', () => {
       completed: true,
       pomodoros: 1,
       endTime: baseTime,
-      duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000 // Use constant instead of hardcoded value
+      duration: DEFAULT_TIMER_SETTINGS.workDuration  // Use constant instead of hardcoded value
     };
 
     // Add initial completed task directly to the completed store
@@ -802,7 +802,7 @@ describe('Database Integration', () => {
       ...completedTask,
       description: 'Updated completed description',
       category: 'Personal',
-      duration: DEFAULT_TIMER_SETTINGS.longBreakDuration * 1000 // Use constant instead of hardcoded value
+      duration: DEFAULT_TIMER_SETTINGS.longBreakDuration  // Use constant instead of hardcoded value
     };
 
     try {
@@ -819,7 +819,7 @@ describe('Database Integration', () => {
       expect(completedTasks.length).toBe(1);
       expect(completedTasks[0].description).toBe('Updated completed description');
       expect(completedTasks[0].category).toBe('Personal');
-      expect(completedTasks[0].duration).toBe(DEFAULT_TIMER_SETTINGS.longBreakDuration * 1000);
+      expect(completedTasks[0].duration).toBe(DEFAULT_TIMER_SETTINGS.longBreakDuration );
     } catch (error) {
       console.error('FAILURE: Could not verify completed task update');
       console.error('Expected updated values were not found in the database');
@@ -850,7 +850,7 @@ describe('Database Integration', () => {
         completed: true,
         pomodoros: 1,
         endTime: now - 2000,
-        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+        duration: DEFAULT_TIMER_SETTINGS.workDuration 
       },
       {
         id: 'completed-delete-test-2',
@@ -859,7 +859,7 @@ describe('Database Integration', () => {
         completed: true,
         pomodoros: 1,
         endTime: now - 1000,
-        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+        duration: DEFAULT_TIMER_SETTINGS.workDuration 
       },
       {
         id: 'completed-delete-test-3',
@@ -868,7 +868,7 @@ describe('Database Integration', () => {
         completed: true,
         pomodoros: 1,
         endTime: now,
-        duration: DEFAULT_TIMER_SETTINGS.workDuration * 1000
+        duration: DEFAULT_TIMER_SETTINGS.workDuration 
       }
     ];
 
