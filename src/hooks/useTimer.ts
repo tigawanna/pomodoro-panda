@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
+import type { Task } from '../types/task';
 import type { TimerState, UseTimerProps } from '../types/timer';
 import useTimerContext from './useTimerContext';
-import type { Task } from '../types/task';
 
 export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
     const timerContext = useTimerContext();
@@ -25,9 +25,10 @@ export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
         state: timerContext.state,
 
         // Methods
-        start: (task: Task) => timerContext.startTimer(task),
-        pause: timerContext.pauseTimer,
-        reset: timerContext.resetTimer,
+        startBreak: timerContext.startBreak,
+        startTimer: (task: Task) => timerContext.startTimer(task),
+        pauseTimer: timerContext.pauseTimer,
+        resetTimer: timerContext.resetTimer,
         switchTimer: timerContext.switchTimer,
 
         // For backward compatibility

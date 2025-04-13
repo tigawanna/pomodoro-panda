@@ -27,22 +27,20 @@ export interface TimerState {
 // Define action types
 export type TimerAction =
   | { type: 'UPDATE_TIMER_STATE'; payload: Partial<TimerState> }
+  | { type: 'START_BREAK'; payload: { startTime: number; expectedEndTime: number; duration: number; timerType: TimerType } }
   | { type: 'START_TIMER'; payload?: { startTime?: number; expectedEndTime?: number; activeTaskId?: string } }
   | { type: 'PAUSE_TIMER' }
-  | { type: 'RESET_TIMER' }
-  | { type: 'SWITCH_TIMER'; payload: { timerType: TimerType; timeLeft: number } }
   | { type: 'UPDATE_TIME_LEFT'; payload: { timeLeft: number } };
 
 // Define context type
 
 export interface TimerContextType {
   state: TimerState;
-  dispatch: React.Dispatch<TimerAction>;
+  startBreak: (breakType: TimerType) => void;
   startTimer: (task: Task) => void;
   pauseTimer: () => void;
-  resetTimer: () => void;
+  resetTimer: ()=> void;
   switchTimer: () => void;
-  updateTimerState: (newState: Partial<TimerState>) => void;
   setOnComplete: (callback: (state: TimerState) => void) => void;
   settings: TimerSettings;
 }
@@ -70,6 +68,7 @@ export interface TimerControlsProps {
   isPaused: boolean;
   hasStarted: boolean;
   onStart: () => void;
+  onBreak: () => void;
   onResume: () => void;
   onPause: () => void;
   onStop: () => void;

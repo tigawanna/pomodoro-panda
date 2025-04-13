@@ -9,11 +9,11 @@ export default function useTimerContext() {
   
   const { 
     state, 
+    startBreak, 
     startTimer, 
     pauseTimer, 
-    resetTimer, 
+    resetTimer,
     switchTimer, 
-    updateTimerState,
     setOnComplete,
     settings
   } = context;
@@ -23,13 +23,13 @@ export default function useTimerContext() {
     state,
 
     // Actions
+    startBreak,
     startTimer,
     pauseTimer,
     resetTimer,
     switchTimer,
-    updateTimerState,
     setOnComplete,
-    
+
     // Settings
     settings
   };

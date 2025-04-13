@@ -25,73 +25,70 @@ export const Timer: React.FC<TimerProps> = ({
 }) => {
     const [notification, setNotification] = useState<string | null>(null);
     const logger = useLogger('Timer');
-    const posthog = usePostHog()
+    const posthog = usePostHog();
 
-    const {
-        state,
-        start,
-        pause,
-        reset,
-        switchTimer,
-        settings,
-    } = useTimer({
-        onComplete: async (state: TimerState) => {
-            if (state.timerType === TIMER_TYPES.WORK) {
-                // Mark the pomodoro as completed in the database
-                await handleDone(state);
-            } else {
-                // For break timers, just show notification
-                showNotification(state.timerType);
-                setNotification(COMPLETION_MESSAGES[state.timerType]);
-            }
-        },
-    });
+    const { state, startBreak, startTimer, resetTimer, pauseTimer, switchTimer, settings } =
+        useTimer({
+            onComplete: async (state: TimerState) => {
+                if (state.timerType === TIMER_TYPES.WORK) {
+                    // Mark the pomodoro as completed in the database
+                    await handleDone(state);
+                } else {
+                    // For break timers, just show notification
+                    showNotification(state.timerType);
+                    setNotification(COMPLETION_MESSAGES[state.timerType]);
+                }
+            },
+        });
 
     const canStartWorkTimer = selectedTask !== null;
 
-    const handleStart = () => {
-        start(selectedTask);
+    const handleStartWorkTimer = () => {
+        startTimer(selectedTask);
         posthog.capture('timer_started', {
             timer_type: state.timerType,
         });
     };
 
+    const handleStartBreakTimer = () => {
+        startBreak(state.timerType);
+    };
+
     const handlePause = () => {
-        pause();
+        pauseTimer();
     };
 
     const handleResume = () => {
-        start(selectedTask);
-    };
-
-    const handleStop = () => {
-        reset();
+        startTimer(selectedTask);
     };
 
     const handleSkip = () => {
         switchTimer();
     };
 
+    const handleResetCurrentTimer = () => {
+        resetTimer();
+    };
+
     const showInAppNotification = (message: string) => {
         setNotification(message);
     };
     const handleDone = async (timerState: TimerState) => {
-        
         if (!timerState) {
             return;
         }
         switchTimer();
         showNotification(state.timerType);
         setNotification(COMPLETION_MESSAGES[state.timerType]);
-        
+
         let actualDurationMs = undefined;
-        
+
         if (timerState.hasCompleted) {
-            actualDurationMs = settings.workDuration * 1000;
+            actualDurationMs = settings.workDuration;
         } else if (!timerState.hasCompleted && timerState.hasStarted) {
             // Calculate actual duration based on time spent
-            const totalDurationMs = settings.workDuration * 1000; // Full duration in ms
-            const timeLeftMs = state.timeLeft * 1000; // Remaining time in ms
+            const totalDurationMs = settings.workDuration; 
+            const timeLeftMs = state.timeLeft; 
             actualDurationMs = totalDurationMs - timeLeftMs;
         }
 
@@ -108,7 +105,10 @@ export const Timer: React.FC<TimerProps> = ({
             if (!timerState.activeTaskId) {
                 throw new Error('No task id found');
             }
-            await tasksDB.completeOnePomodoro(timerState.activeTaskId, completedTask);
+            await tasksDB.completeOnePomodoro(
+                timerState.activeTaskId,
+                completedTask
+            );
             await onTaskComplete();
             posthog.capture('timer_completed', {
                 timer_type: timerState.timerType,
@@ -117,7 +117,10 @@ export const Timer: React.FC<TimerProps> = ({
             });
             showInAppNotification(COMPLETION_MESSAGES[state.timerType]);
         } catch (error) {
-            logger.error('Failed to complete task:', error instanceof Error ? error.message : error);
+            logger.error(
+                'Failed to complete task:',
+                error instanceof Error ? error.message : error
+            );
             showInAppNotification(ERROR_MESSAGES.TASK_COMPLETE_FAILED);
         }
     };
@@ -132,9 +135,14 @@ export const Timer: React.FC<TimerProps> = ({
         return typeof title === 'function' ? title(session) : title;
     };
 
+
     return (
         <>
-            <div className={`${styles.timerContainer} ${styles[state.timerType]}`}>
+            <div
+                className={`${styles.timerContainer} ${
+                    styles[state.timerType]
+                }`}
+            >
                 <div className={styles.timerHeader}>
                     <div className={styles.headerLeft}>
                         <span className={styles.comingSoon}>⚙️</span>
@@ -153,10 +161,11 @@ export const Timer: React.FC<TimerProps> = ({
                 <TimerControls
                     isPaused={!state.isRunning && state.hasStarted}
                     hasStarted={state.hasStarted}
-                    onStart={handleStart}
+                    onStart={handleStartWorkTimer}
+                    onBreak={handleStartBreakTimer}
                     onResume={handleResume}
                     onPause={handlePause}
-                    onStop={handleStop}
+                    onStop={handleResetCurrentTimer}
                     onDone={() => handleDone(state)}
                     onSkip={handleSkip}
                     disableWorkTimer={!canStartWorkTimer}

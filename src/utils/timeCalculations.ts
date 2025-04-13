@@ -22,14 +22,14 @@ export const calculateEstimatedCompletion = (
             if (isTimerRunning && startTime) {
                 // If timer is running, use elapsed time since start
                 const elapsed = now - startTime;
-                accumulatedTime += Math.max(0, (currentTimeLeft * 1000) - elapsed);
+                accumulatedTime += Math.max(0, (currentTimeLeft ) - elapsed);
             } else {
                 // If paused or not started, use full remaining time
-                accumulatedTime += currentTimeLeft * 1000;
+                accumulatedTime += currentTimeLeft ;
             }
         } else {
             // For non-active tasks, use full duration
-            accumulatedTime += (task.pomodoros || 1) * settings.workDuration * 1000;
+            accumulatedTime += (task.pomodoros || 1) * settings.workDuration ;
         }
 
         // Add break periods
@@ -37,9 +37,9 @@ export const calculateEstimatedCompletion = (
             const breakCount = task.pomodoros || 1;
             for (let p = 0; p < breakCount; p++) {
                 if ((p + 1) % settings.sessionsUntilLongBreak === 0) {
-                    accumulatedTime += settings.longBreakDuration * 1000;
+                    accumulatedTime += settings.longBreakDuration ;
                 } else {
-                    accumulatedTime += settings.breakDuration * 1000;
+                    accumulatedTime += settings.breakDuration ;
                 }
             }
         }
