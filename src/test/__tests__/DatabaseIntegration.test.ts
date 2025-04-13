@@ -802,7 +802,7 @@ describe('Database Integration', () => {
       ...completedTask,
       description: 'Updated completed description',
       category: 'Personal',
-      duration: DEFAULT_TIMER_SETTINGS.longBreakDuration  // Use constant instead of hardcoded value
+      duration: DEFAULT_TIMER_SETTINGS.longBreakDuration 
     };
 
     try {
