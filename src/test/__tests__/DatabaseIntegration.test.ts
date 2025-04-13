@@ -781,7 +781,7 @@ describe('Database Integration', () => {
       completed: true,
       pomodoros: 1,
       endTime: baseTime,
-      duration: DEFAULT_TIMER_SETTINGS.workDuration  // Use constant instead of hardcoded value
+      duration: DEFAULT_TIMER_SETTINGS.workDuration 
     };
 
     // Add initial completed task directly to the completed store
