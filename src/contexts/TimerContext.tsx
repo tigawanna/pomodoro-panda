@@ -294,7 +294,6 @@ export const TimerProvider: React.FC<{
     const value = {
         state,
         startBreak,
-        dispatch,
         startTimer,
         pauseTimer,
         resetTimer,

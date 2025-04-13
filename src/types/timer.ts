@@ -36,7 +36,6 @@ export type TimerAction =
 
 export interface TimerContextType {
   state: TimerState;
-  dispatch: React.Dispatch<TimerAction>;
   startBreak: (breakType: TimerType) => void;
   startTimer: (task: Task) => void;
   pauseTimer: () => void;

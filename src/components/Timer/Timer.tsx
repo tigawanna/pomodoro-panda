@@ -27,7 +27,7 @@ export const Timer: React.FC<TimerProps> = ({
     const logger = useLogger('Timer');
     const posthog = usePostHog();
 
-    const { state, startBreak, start, reset, pause, switchTimer, settings } =
+    const { state, startBreak, startTimer, resetTimer, pauseTimer, switchTimer, settings } =
         useTimer({
             onComplete: async (state: TimerState) => {
                 if (state.timerType === TIMER_TYPES.WORK) {
@@ -44,7 +44,7 @@ export const Timer: React.FC<TimerProps> = ({
     const canStartWorkTimer = selectedTask !== null;
 
     const handleStartWorkTimer = () => {
-        start(selectedTask);
+        startTimer(selectedTask);
         posthog.capture('timer_started', {
             timer_type: state.timerType,
         });
@@ -55,11 +55,11 @@ export const Timer: React.FC<TimerProps> = ({
     };
 
     const handlePause = () => {
-        pause();
+        pauseTimer();
     };
 
     const handleResume = () => {
-        start(selectedTask);
+        startTimer(selectedTask);
     };
 
     const handleSkip = () => {
@@ -67,7 +67,7 @@ export const Timer: React.FC<TimerProps> = ({
     };
 
     const handleResetCurrentTimer = () => {
-        reset();
+        resetTimer();
     };
 
     const showInAppNotification = (message: string) => {

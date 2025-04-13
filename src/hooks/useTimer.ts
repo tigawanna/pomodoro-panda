@@ -26,9 +26,9 @@ export const useTimer = ({ onComplete, settings }: UseTimerProps = {}) => {
 
         // Methods
         startBreak: timerContext.startBreak,
-        start: (task: Task) => timerContext.startTimer(task),
-        pause: timerContext.pauseTimer,
-        reset: timerContext.resetTimer,
+        startTimer: (task: Task) => timerContext.startTimer(task),
+        pauseTimer: timerContext.pauseTimer,
+        resetTimer: timerContext.resetTimer,
         switchTimer: timerContext.switchTimer,
 
         // For backward compatibility
