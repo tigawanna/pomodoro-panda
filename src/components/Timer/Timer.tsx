@@ -87,8 +87,8 @@ export const Timer: React.FC<TimerProps> = ({
             actualDurationMs = settings.workDuration;
         } else if (!timerState.hasCompleted && timerState.hasStarted) {
             // Calculate actual duration based on time spent
-            const totalDurationMs = settings.workDuration; // Full duration in ms
-            const timeLeftMs = state.timeLeft; // Remaining time in ms
+            const totalDurationMs = settings.workDuration; 
+            const timeLeftMs = state.timeLeft; 
             actualDurationMs = totalDurationMs - timeLeftMs;
         }
 
