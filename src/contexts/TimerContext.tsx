@@ -227,6 +227,7 @@ export const TimerProvider: React.FC<{
      * - startTime to null
      * - expectedEndTime to undefined
      * - hasCompleted to false
+     * - timeLeft to either break duration | long break duration
      */
     const resetTimer = useCallback(() => {
         const payload: Partial<TimerState> = {
