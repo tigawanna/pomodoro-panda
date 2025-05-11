@@ -1,0 +1,63 @@
+.statsContainer {
+  padding: 20px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.infoCardsContainer {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  justify-content: center;
+  flex-wrap: wrap; /* Allows cards to wrap on smaller screens */
+}
+
+.infoCard {
+  padding: 10px 15px;
+  border-radius: 6px;
+  color: white;
+  min-width: 180px; /* Adjust as needed, e.g., 160px */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  justify-content: space-around;
+}
+
+.infoCardLeftRow {
+  display: flex;
+  align-items: top; /* Vertically align icon and value */
+  margin-bottom: 2px;
+}
+
+.infoCardRightRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.infoCardIcon {
+  margin-top: 4px;
+  font-size: 20px; /* Checkmark and clock icon size */
+  margin-right: 8px;
+  line-height: 1; /* Helps with vertical alignment */
+}
+
+.infoCardValue {
+  font-size: 16px; /* Size of the number/time string */
+  font-weight: bold;
+}
+
+.infoCardLabel {
+  font-size: 17px; /* "Pomodoros" / "Time spent" label size */
+  text-align: right; /* Aligns label under the value part */
+  width: 100%; /* Ensures text-align behaves as expected */
+  margin: 0;
+ /* If the label needs to be further to the right, adjust padding or margin on value/icon */
+}
+
+.pomodorosCard {
+  background-color: #d9534f; /* Reddish color from image */
+}
+
+.timeSpentCard {
+  background-color: #f0ad4e; /* Yellowish color from image */
+}
