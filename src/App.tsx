@@ -10,16 +10,6 @@ import Stats from './pages/Stats';
 import { initializeApp } from './utils/appSetup';
 
 function App() {
-    const logger = useLogger('App');
-    const posthog = usePostHog();
-
-    useEffect(() => {
-        if (posthog) {
-            logger.info('PostHog successfully initialized');
-            posthog.capture('app_loaded');
-        }
-    }, [logger, posthog]);
-
     // Initialize the app
     useEffect(() => {
         async function initialize() {
@@ -29,9 +19,18 @@ function App() {
                 console.error('Failed to initialize app:', error);
             }
         }
-
         initialize();
     }, []);
+
+    const appLogger = useLogger('App');
+    const posthog = usePostHog();
+
+    useEffect(() => {
+        if (posthog && appLogger) {
+            appLogger.info('PostHog successfully initialized');
+            posthog.capture('app_loaded');
+        }
+    }, [appLogger, posthog]);
 
     return (
         <ErrorBoundary fallback={<div>Something went wrong</div>}>
