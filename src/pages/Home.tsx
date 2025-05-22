@@ -11,6 +11,7 @@ import { TimerProvider } from '../contexts/TimerContext';
 import { useLogger } from '../hooks/useLogger';
 import { NotificationState, Task } from '../types';
 import { tasksDB } from '../utils/database';
+import { settingsDB } from '../utils/database';
 
 function Home() {
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -93,8 +94,11 @@ function Home() {
         };
 
         try {
+            // Get user's preference for task position
+            const addToBottom = await settingsDB.get('addTasksToBottom');
+            
             await tasksDB.add(newTask);
-            setTasks((prev) => [newTask, ...prev]);
+            setTasks((prev) => addToBottom ? [...prev, newTask] : [newTask, ...prev]);
             setNotification({
                 message: 'New task added',
                 type: 'success',

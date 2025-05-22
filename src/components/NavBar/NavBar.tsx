@@ -27,6 +27,14 @@ const NavBar: React.FC = () => {
                 >
                     Stats
                 </NavLink>
+                <NavLink
+                    to="/settings"
+                    className={({ isActive }) =>
+                        isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+                    }
+                >
+                    Settings
+                </NavLink>
             </div>
         </nav>
     );

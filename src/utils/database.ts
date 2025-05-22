@@ -11,6 +11,7 @@ const DB_NAME = `${DB_PREFIX}_PomodoroDB` as const;
 // Store names as constants
 export const TASKS_STORE = 'tasks' as const;
 export const COMPLETED_TASKS_STORE = 'completedTasks' as const;
+export const SETTINGS_STORE = 'settings' as const;
 
 // Database version history with migrations
 const DB_MIGRATIONS = {
@@ -24,6 +25,12 @@ const DB_MIGRATIONS = {
     // Added completed tasks tracking
     const completedStore = db.createObjectStore(COMPLETED_TASKS_STORE, { keyPath: 'id' });
     completedStore.createIndex('endTime', 'endTime');
+  },
+  3: (db: IDBDatabase) => {
+    // Added settings store
+    if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+      db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
+    }
   }
 } as const;
 
@@ -49,7 +56,10 @@ export const initDB = (): Promise<IDBDatabase> => {
       // Handle version change requests from other tabs
       db.onversionchange = () => {
         db.close();
-        dbLogger.warn('Database is outdated, please reload the page.');
+        // Only show warning in non-test environment
+        if (process.env.NODE_ENV !== 'test') {
+          dbLogger.warn('Database is outdated, please reload the page.');
+        }
       };
 
       resolve(db);
@@ -65,6 +75,18 @@ export const initDB = (): Promise<IDBDatabase> => {
         if (migration) {
           migration(db);
         }
+      }
+
+      if (!db.objectStoreNames.contains(TASKS_STORE)) {
+        db.createObjectStore(TASKS_STORE, { keyPath: 'id' });
+      }
+
+      if (!db.objectStoreNames.contains(COMPLETED_TASKS_STORE)) {
+        db.createObjectStore(COMPLETED_TASKS_STORE, { keyPath: 'id' });
+      }
+
+      if (!db.objectStoreNames.contains(SETTINGS_STORE)) {
+        db.createObjectStore(SETTINGS_STORE, { keyPath: 'id' });
       }
     };
   });
@@ -363,6 +385,37 @@ export const tasksDB = {
 
       request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
+    });
+  }
+};
+
+export const settingsDB = {
+  async get(key: string): Promise<boolean | null> {
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([SETTINGS_STORE], 'readonly');
+      const store = transaction.objectStore(SETTINGS_STORE);
+      const request = store.get(key);
+
+      request.onsuccess = () => resolve(request.result?.value ?? null);
+      request.onerror = () => reject(request.error);
+    });
+  },
+
+  async set(key: string, value: boolean): Promise<void> {
+    if (!key || typeof key !== 'string' || key.trim() === '') {
+      throw new Error('Setting key cannot be empty');
+    }
+
+    const db = await initDB();
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
+      const store = transaction.objectStore(SETTINGS_STORE);
+      const request = store.put({ id: key, value });
+
+      request.onerror = () => reject(request.error);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
     });
   }
 }; 
