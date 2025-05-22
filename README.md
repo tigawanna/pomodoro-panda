@@ -83,7 +83,7 @@ src/
 1. Clone the repository
 
 ```bash
-git clone git@github.com:adrianmurage/pomodoro-tracker.git
+git git@github.com:adrianmurage/pomodoro-panda.git
 ```
 
 2. Install dependencies
