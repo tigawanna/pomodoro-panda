@@ -403,12 +403,17 @@ export const settingsDB = {
   },
 
   async set(key: string, value: boolean): Promise<void> {
+    if (!key || typeof key !== 'string' || key.trim() === '') {
+      throw new Error('Setting key cannot be empty');
+    }
+
     const db = await initDB();
     return new Promise((resolve, reject) => {
       const transaction = db.transaction([SETTINGS_STORE], 'readwrite');
       const store = transaction.objectStore(SETTINGS_STORE);
-      store.put({ id: key, value });
+      const request = store.put({ id: key, value });
 
+      request.onerror = () => reject(request.error);
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
     });
