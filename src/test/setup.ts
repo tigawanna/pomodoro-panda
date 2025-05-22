@@ -17,5 +17,5 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
 afterEach(() => {
   cleanup();
   // Clear IndexedDB between tests
-  indexedDB.deleteDatabase('PomodoroDB');
+  indexedDB.deleteDatabase('dev_PomodoroDB'); // Using dev prefix since we're in test environment
 }); 

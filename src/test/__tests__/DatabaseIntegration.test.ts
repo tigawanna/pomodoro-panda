@@ -6,7 +6,7 @@ import { DEFAULT_TIMER_SETTINGS } from '../../constants/timerConstants';
 describe('Database Integration', () => {
   // Clean up database after all tests
   afterAll(async () => {
-    await indexedDB.deleteDatabase('PomodoroDB');
+    await indexedDB.deleteDatabase('dev_PomodoroDB');
   });
 
   // Add beforeEach to clean up both stores
