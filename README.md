@@ -49,15 +49,26 @@ A modern task management application with Pomodoro timer functionality, built wi
 public/ # Public assets
 src/
 ├── components/ # React components
+│   ├── Banner/ # Banner components
+│   ├── NavBar/ # Navigation components
 │   ├── Timer/ # Timer related components
 │   ├── Tasks/ # Task management components
-│   └── Notification/ # Notification components
+│   ├── Notification/ # Notification components
+│   ├── debug/ # Debug components
+│   └── ErrorBoundary.tsx # Error handling component
 ├── contexts/ # React contexts
 ├── constants/ # Application constants
 ├── hooks/ # Custom React hooks
+├── pages/ # Page components
 ├── styles/ # Global styling
+├── test/ # Test files
 ├── types/ # TypeScript definitions
-└── utils/ # Utility functions
+├── utils/ # Utility functions
+├── App.tsx # Main App component
+├── App.css # App-level styles
+├── main.tsx # Application entry point
+├── index.css # Global styles
+└── vite-env.d.ts # Vite environment types
 ```
 
 ## Getting Started
