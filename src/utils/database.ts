@@ -56,7 +56,10 @@ export const initDB = (): Promise<IDBDatabase> => {
       // Handle version change requests from other tabs
       db.onversionchange = () => {
         db.close();
-        dbLogger.warn('Database is outdated, please reload the page.');
+        // Only show warning in non-test environment
+        if (process.env.NODE_ENV !== 'test') {
+          dbLogger.warn('Database is outdated, please reload the page.');
+        }
       };
 
       resolve(db);

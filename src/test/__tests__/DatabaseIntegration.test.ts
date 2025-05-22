@@ -1,8 +1,14 @@
-import { describe, test, expect, beforeEach, afterAll } from 'vitest';
+import { describe, test, expect, beforeEach, afterAll, beforeAll } from 'vitest';
 import { tasksDB, initDB, TASKS_STORE, COMPLETED_TASKS_STORE } from '../../utils/database'; import type { Task } from '../../types';
 import { fail } from 'assert';
 import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_TIMER_SETTINGS } from '../../constants/timerConstants';
+
+// Ensure we're in test environment
+beforeAll(() => {
+  process.env.NODE_ENV = 'test';
+});
+
 describe('Database Integration', () => {
   // Clean up database after all tests
   afterAll(async () => {
