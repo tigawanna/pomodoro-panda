@@ -32,9 +32,9 @@ export async function initializeApp() {
                                 accentBackground: '#d9534f',
                                 successColor: '#5cb85c'
                             },
-                            buttonLabel: 'Report Bug / Feedback',
-                            formTitle: 'Report a bug or provide feedback',
-                            messagePlaceholder: "Report any bugs or provide feedback here. Be as detailed as possible. Adrian(the guy building this), will get back to you within 24 hours.",
+                            triggerLabel: 'Help Us Improve!',
+                            formTitle: 'Report a bug, provide feedback, or request a feature',
+                            messagePlaceholder: "Report any bugs, provide feedback, or request a feature here. Be as detailed as possible. Adrian(the guy building this), will get back to you within 24 hours.",
                         }),
                         Sentry.replayIntegration({
                             // help us see what was going on in the app when an error occurs
