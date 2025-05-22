@@ -65,7 +65,7 @@ src/
 ### Prerequisites
 
 - Node.js (v18 or higher)
-- npm or yarn
+- npm
 
 ### Installation
 
@@ -78,7 +78,7 @@ git clone git@github.com:adrianmurage/pomodoro-tracker.git
 2. Install dependencies
 
 ```bash
-yarn install
+npm install
 ```
 
 ## Development
@@ -86,7 +86,7 @@ yarn install
 Run the development server:
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 ## Testing
@@ -94,19 +94,19 @@ yarn dev
 Run the test suite:
 
 ```bash
-yarn test
+npm test
 ```
 
 Run tests with UI:
 
 ```bash
-yarn test:ui
+npm run test:ui
 ```
 
 Run tests without watch mode:
 
 ```bash
-yarn test:run
+npm run test:run
 ```
 
 ### Building for Production
@@ -114,13 +114,13 @@ yarn test:run
 Build the application:
 
 ```bash
-yarn build
+npm run build
 ```
 
 Preview the production build:
 
 ```bash
-yarn preview
+npm run preview
 ```
 
 ### Linting
@@ -128,7 +128,7 @@ yarn preview
 Run ESLint:
 
 ```bash
-yarn lint
+npm run lint
 ```
 
 ## Development Guidelines
