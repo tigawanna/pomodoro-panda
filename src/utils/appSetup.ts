@@ -32,6 +32,7 @@ export async function initializeApp() {
                                 accentBackground: '#d9534f',
                                 successColor: '#5cb85c'
                             },
+                            buttonLabel: 'Report Bug / Feedback',
                             formTitle: 'Report a bug or provide feedback',
                             messagePlaceholder: "Report any bugs or provide feedback here. Be as detailed as possible. Adrian(the guy building this), will get back to you within 24 hours.",
                         }),
