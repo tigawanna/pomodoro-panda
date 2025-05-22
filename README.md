@@ -7,10 +7,31 @@ A modern task management application with Pomodoro timer functionality, built wi
 - ✅ Task management with drag-and-drop reordering
 - 🔔 Desktop notifications for timer events
 - 💾 Persistent storage using IndexedDB
+- 🕒 Pomodoro timer with:
+  - 90-minute work sessions
+  - 30-minute break sessions
+  - 60-minute long break sessions
+  - Long break after 4 work sessions
+- 📊 Progress tracking features:
+  - Task completion history
+  - Total duration calculations
+  - Finish time predictions
+- 🔄 Task operations:
+  - Add, edit, and delete tasks
+  - Mark tasks as complete
+  - Repeat completed tasks
+  - Update number of pomodoros per task
+- ⏲️ Timer controls:
+  - Start/pause/resume timer
+  - Switch between work and break sessions
+  - Skip current session
+  - Reset timer
 
-### ToDo
-- 🕒 Configurable Pomodoro timer with work, break, and long break sessions
-- 📊 Progress tracking and completion statistics
+### Planned Enhancements
+- ⚙️ User-configurable timer durations
+- 📋 Session statistics and analytics
+- 📈 Visual progress tracking
+- 🔊 Custom notification sounds
 - 📱 Responsive design for all devices
 
 ## Tech Stack
@@ -28,11 +49,15 @@ A modern task management application with Pomodoro timer functionality, built wi
 public/ # Public assets
 src/
 ├── components/ # React components
+│   ├── Timer/ # Timer related components
+│   ├── Tasks/ # Task management components
+│   └── Notification/ # Notification components
+├── contexts/ # React contexts
+├── constants/ # Application constants
 ├── hooks/ # Custom React hooks
-├── styles/ # Styling
+├── styles/ # Global styling
 ├── types/ # TypeScript definitions
-├── utils/ # Utility functions
-└── test/ # Tests
+└── utils/ # Utility functions
 ```
 
 ## Getting Started
@@ -140,22 +165,28 @@ yarn lint
 
 ### Timer
 
-- Configurable work, break, and long break durations
+- Fixed duration settings:
+  - 90-minute work sessions
+  - 30-minute break sessions
+  - 60-minute long break sessions
+  - Long break after 4 work sessions
 - Desktop notifications for session completion
-- Visual and audio feedback for timer events
+- Visual feedback for timer events
 
 ### Task Management
 
 - Drag-and-drop task reordering
-- Task categories and descriptions
-- Multiple pomodoro sessions per task
-- Progress tracking
+- Task descriptions
+- Configurable pomodoro sessions per task
+- Task completion tracking
+- Task history management
 
 ### Data Persistence
 
 - IndexedDB storage for tasks
 - Completed task history
-- Session statistics
+- Time tracking and estimates
+- Task order persistence
 
 ## Contributing
 
