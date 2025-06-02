@@ -1,7 +1,7 @@
 // Main service worker file
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
 import { clientsClaim } from "workbox-core";
-import { initializeJobsDB, type WaitJob, getJobById, getAllActiveJobs, storeJob, updateJobStatus } from "./idxdb";
+import { initializeJobsDB, getAllActiveJobs,updateJobStatus } from "./idxdb";
 import { createWaitJob, processTimerChunk } from "./micro-tasks";
 
 declare const self: ServiceWorkerGlobalScope;

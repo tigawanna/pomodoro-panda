@@ -101,13 +101,6 @@ export async function processTimerChunk(jobId?: string) {
       } else {
         // Still waiting, broadcast status
         notifyClientsAboutJobStatus(job);
-        
-        // Store a wake-up token
-        const wakeToken = {
-          id: `wake-${job.id}`,
-          timestamp: Date.now()
-        };
-        
         // We'll continue in the next micro-task
         console.log(`[SW] Job ${job.id} still waiting, ${remaining}ms remaining`);
       }
