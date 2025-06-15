@@ -27,11 +27,13 @@ function Home() {
   useEffect(() => {
     async function initialize() {
       try {
-        // Check if banner was previously dismissed
-        const bannerDismissed = localStorage.getItem("statsBannerDismissed");
+        // Check if deprecation banner was previously dismissed
+        const bannerDismissed = localStorage.getItem(
+          "deprecationBannerDismissed",
+        );
 
         if (!bannerDismissed) {
-          localStorage.setItem("statsBannerDismissed", "0");
+          localStorage.setItem("deprecationBannerDismissed", "0");
           setShowBanner(true);
         } else if (parseInt(bannerDismissed) < 3) {
           setShowBanner(true);
@@ -345,15 +347,15 @@ function Home() {
   };
 
   const handleDismissBanner = () => {
-    posthog.capture("stats_banner_dismissed");
+    posthog.capture("deprecation_banner_dismissed");
     setShowBanner(false);
     // Store the preference in localStorage
-    let currentCount = localStorage.getItem("statsBannerDismissed");
+    let currentCount = localStorage.getItem("deprecationBannerDismissed");
     if (isNaN(parseInt(currentCount || "0"))) {
       currentCount = "0";
     }
     const newCount = currentCount ? parseInt(currentCount) + 1 : 1;
-    localStorage.setItem("statsBannerDismissed", newCount.toString());
+    localStorage.setItem("deprecationBannerDismissed", newCount.toString());
   };
 
   const activeTask = tasks[0] || null;
