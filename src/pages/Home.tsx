@@ -380,12 +380,12 @@ function Home() {
                   To stay up to date with developments, please sign up to our
                   newsletter at:{" "}
                   <a
-                    href="https://akongalabs.com/2025/06/14/why-im-starting-this-company/"
+                    href="https://akongalabs.com/blog/why-im-starting-this-company/"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ color: "inherit", textDecoration: "underline" }}
                   >
-                    akongalabs.com/2025/06/14/why-im-starting-this-company/
+                    akongalabs.com/blog/why-im-starting-this-company/
                   </a>
                 </>
               }
